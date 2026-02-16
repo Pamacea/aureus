@@ -717,8 +717,8 @@ async function gitAnalyzeCommits(repoPath) {
   };
 }
 
-async function gitInstallHooks(repoPath) {
-  const repoPath = repoPath ? await validateRepoPath(repoPath) : await getCurrentRepoPath();
+async function gitInstallHooks(path) {
+  const repoPath = path ? await validateRepoPath(path) : await getCurrentRepoPath();
   const hooksDir = path.join(repoPath, '.git', 'hooks');
 
   await fs.mkdir(hooksDir, { recursive: true });

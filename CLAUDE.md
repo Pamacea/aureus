@@ -1,6 +1,6 @@
 # Claude Git - Plugin Configuration
 
-> **Version:** 0.5.0 | **Last Updated:** 2025-02-12
+> **Version:** 0.5.6 | **Last Updated:** 2026-02-16
 
 ---
 

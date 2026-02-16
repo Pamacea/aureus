@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.6] - 2026-02-16
+
+### Fixed
+
+#### MCP Server
+- Fixed: Variable shadowing bug in `gitInstallHooks` function (line 721)
+- Fixed: MCP server now starts correctly without syntax errors
+- Fixed: MCP server connection established successfully
+
+---
+
 ## [0.5.0] - 2025-02-12
 
 ### Added
