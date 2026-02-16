@@ -17,8 +17,11 @@ This skill provides comprehensive Git workflow automation:
 
 ## Web Interface
 
-**The web interface starts automatically with Claude Code.**
+**The web interface starts on-demand when you use git flow features that require it.**
 
+You can also manually control it:
+- **Start:** Use `/web-start` skill or run `node hooks/start-background.js start`
+- **Stop:** Use `/web-stop` skill or run `node hooks/start-background.js stop`
 - **URL:** http://localhost:3747
 - **API:** http://localhost:3747/api
 

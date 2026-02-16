@@ -1,7 +1,7 @@
 {
   "name": "git-flow-master",
   "description": "Advanced Git automation with Versioned Release Convention (RELEASE/UPDATE/PATCH), smart releases, amend workflow, and conflict resolution",
-  "version": "0.5.6",
+  "version": "0.5.8",
   "author": {
     "name": "Yanis"
   },
@@ -34,8 +34,8 @@
         "matcher": "Bash",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "If this is a git commit command, verify the message follows Versioned Release Convention format: 'TYPE: Project Name - vVERSION' where TYPE is RELEASE, UPDATE, or PATCH. Warn if format is incorrect."
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/pre-git-check.js"
           }
         ]
       }
@@ -46,8 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-git-operation.sh",
-            "timeout": 15
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/post-git-operation.js"
           }
         ]
       }

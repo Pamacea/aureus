@@ -79,7 +79,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## Links
+## [0.5.7] - 2026-02-16
+
+### Performance
+
+#### Critical Latency Fixes
+- **REMOVED**: PostToolUse hook that ran after EVERY Bash command (major performance issue)
+- **REMOVED**: SessionStart hook for web server auto-start
+- **OPTIMIZED**: PreToolUse hook now only checks actual git commit commands
+- **ADDED**: On-demand web server start (`/web-start` skill)
+- **ADDED**: Manual web server stop (`/web-stop` skill)
+
+#### Performance Improvements
+- Session start time: 5-10 seconds → <1 second
+- Bash command latency: +0.5-1s → 0s (no overhead)
+- Web server: Auto-start → Lazy initialization (only when needed)
+- MCP server: Unchanged (fast and necessary)
+
+### Changed
+
+#### Web Interface
+- Web interface no longer starts automatically on session start
+- Users can manually start it with `/web-start` skill
+- Server stops automatically when Claude Code closes
+
+#### Hook Behavior
+- PreToolUse hook only activates for `git commit` commands
+- No more background git operations after every Bash command
+- No more HTTP requests to localhost:3747 after commands
+
+### Migration Notes
+
+**If you relied on automatic web server startup:**
+- Use `/web-start` skill to manually start the interface
+- Web interface will start automatically when you use git flow features that need it
+
+**No breaking changes for:**
+- All git flow skills (`/versioned-commit`, `/amend-commit`, etc.)
+- MCP tools and git operations
+- Git hooks installation and functionality
+
+---
 
 - **GitHub:** https://github.com/Pamacea/claude-git
 - **Issues:** https://github.com/Pamacea/claude-git/issues

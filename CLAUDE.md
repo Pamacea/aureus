@@ -1,6 +1,6 @@
 # Claude Git - Plugin Configuration
 
-> **Version:** 0.5.6 | **Last Updated:** 2026-02-16
+> **Version:** 0.5.8 | **Last Updated:** 2026-02-16
 
 ---
 
@@ -16,10 +16,10 @@
 npm install
 ```
 
-When installed from marketplace, the plugin automatically:
-- Starts web interface at http://localhost:3747
-- Detects git repositories in your working directory
-- Prompts to install hooks when needed
+When installed from marketplace, the plugin:
+- Starts MCP server for git operations
+- Provides git flow automation skills
+- Web interface starts on-demand when needed
 
 ---
 
