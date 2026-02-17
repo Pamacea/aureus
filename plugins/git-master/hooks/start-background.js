@@ -6,9 +6,10 @@
  * Performance: 80% faster startup with async/await
  */
 
-const { spawn, execSync } = require('child_process');
+const { spawn, execSync, exec } = require('child_process');
 const { promisify } = require('util');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const path = require('path');
 const os = require('os');
 
@@ -163,8 +164,9 @@ async function startServer() {
     const webDir = getServerDir();
     const serverPath = path.join(webDir, 'server.js');
 
-    const out = fs.open(LOG_FILE, 'a');
-    const err = fs.open(LOG_FILE, 'a');
+    // Use synchronous file descriptors for spawn
+    const out = fsSync.openSync(LOG_FILE, 'a');
+    const err = fsSync.openSync(LOG_FILE, 'a');
 
     const server = spawn('node', [serverPath], {
       cwd: webDir,

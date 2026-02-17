@@ -13,7 +13,7 @@
       "name": "git-master",
       "source": "./plugins/git-master",
       "description": "Advanced Git automation with Versioned Release Convention (RELEASE/UPDATE/PATCH), smart releases, amend workflow, and conflict resolution",
-      "version": "0.5.0",
+      "version": "0.6.3",
       "author": {
         "name": "Yanis"
       },

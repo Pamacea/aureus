@@ -3,7 +3,7 @@
     "git-flow-master": {
       "type": "stdio",
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"]
+      "args": ["${CLAUDE_PLUGIN_ROOT}/plugins/git-master/mcp/server.js"]
     }
   }
 }
