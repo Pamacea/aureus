@@ -11,6 +11,10 @@ build/
 conventions/dist/
 marketplace/framework/dist/
 
+# Exception: MCP server bundle (must be included for standalone operation)
+!plugins/git-master/mcp/dist/
+!plugins/git-master/mcp/dist/server.bundle.mjs
+
 # Test coverage
 coverage/
 .nyc_output/
