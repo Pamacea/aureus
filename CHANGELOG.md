@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.7] - 2026-02-17
+
+### Fixed
+
+#### Plugin Installation
+- Fixed: Removed invalid `postinstall` key from plugin.json (not supported by Claude Code plugin schema)
+- Added: Root package.json with npm postinstall script for automatic dependency installation
+- Fixed: Plugin now installs correctly without validation errors
+
+---
+
 ## [0.6.6] - 2026-02-17
 
 ### Fixed

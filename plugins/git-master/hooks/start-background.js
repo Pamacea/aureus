@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Git Flow Master - Background Server Starter (v0.6.6)
+ * Git Flow Master - Background Server Starter (v0.6.7)
  * Starts the web server in the background with async operations
  */
 

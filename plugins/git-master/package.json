@@ -1,0 +1,9 @@
+{
+  "name": "git-flow-master",
+  "version": "0.6.7",
+  "description": "Advanced Git automation plugin for Claude Code",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "node hooks/install-dependencies.js"
+  }
+}
