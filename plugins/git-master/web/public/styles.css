@@ -759,10 +759,74 @@ textarea:focus {
   }
 }
 
-/* GPU Acceleration */
+/* GPU Acceleration - REMOVED for performance */
 .card,
 .sidebar,
 .btn {
-  will-change: transform;
-  transform: translateZ(0);
+  /* will-change removed - causing performance issues */
+  /* transform: translateZ(0) removed - deprecated hack */
 }
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-primary);
+  border-left: 4px solid var(--color-accent-primary);
+  border-radius: 6px;
+  padding: 16px 20px;
+  box-shadow: var(--shadow-card-hover);
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast.hide {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toast-success {
+  border-left-color: var(--color-accent-success);
+}
+
+.toast-error {
+  border-left-color: var(--color-accent-error);
+}
+
+.toast-warning {
+  border-left-color: var(--color-accent-warning);
+}
+
+.toast-info {
+  border-left-color: var(--color-accent-primary);
+}
+
+@media (max-width: 768px) {
+  #toast-container {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+}
+

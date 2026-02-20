@@ -37,6 +37,22 @@ async function isServerRunning() {
 }
 
 /**
+ * Wait for server to be ready (polling instead of arbitrary timeout)
+ */
+async function waitForServer(maxWait = 10000, interval = 100) {
+  const start = Date.now();
+
+  while (Date.now() - start < maxWait) {
+    if (await isServerRunning()) {
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, interval));
+  }
+
+  throw new Error(`Server failed to start within ${maxWait}ms`);
+}
+
+/**
  * Start the web server in background
  */
 async function startServer() {
@@ -66,10 +82,14 @@ async function startServer() {
   // Detach the process so it continues running
   proc.unref();
 
-  // Give the server time to start
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
-  console.log(`✓ Git Flow Master server started on ${SERVER_URL}`);
+  // Wait for server to be actually ready (polling)
+  try {
+    await waitForServer();
+    console.log(`✓ Git Flow Master server started on ${SERVER_URL}`);
+  } catch (error) {
+    console.error(`✗ Server startup failed: ${error.message}`);
+    throw error;
+  }
 }
 
 /**
@@ -111,7 +131,7 @@ async function main() {
     if (isRunning) {
       console.log('✓ Git Flow Master web interface is already running');
     } else {
-      // Start the server
+      // Start the server (with polling wait)
       await startServer();
     }
 
@@ -120,7 +140,8 @@ async function main() {
 
   } catch (error) {
     console.error('Session start hook error:', error.message);
-    process.exit(1);
+    // Don't exit with error code, just log
+    // This prevents breaking the entire session if browser auto-open fails
   }
 }
 

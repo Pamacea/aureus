@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Git Flow Master v0.7.0</title>
+  <title>Git Flow Master v0.7.1</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -82,14 +82,14 @@
             </div>
             <div class="card-content">
               <div class="action-buttons">
-                <button class="btn btn-primary" onclick="scanAllRepos()">
-                  🔄 Scan All Repositories
+                <button class="btn btn-primary" onclick="scanAllRepos()" aria-label="Scan all repositories">
+                  <span aria-hidden="true">🔄 Scan All Repositories</span>
                 </button>
-                <button class="btn btn-success" onclick="loadCurrentRepo()">
-                  📂 Load Current Repo
+                <button class="btn btn-success" onclick="loadCurrentRepo()" aria-label="Load current repository">
+                  <span aria-hidden="true">📂 Load Current Repo</span>
                 </button>
-                <button class="btn btn-secondary" onclick="refreshState()">
-                  🔃 Refresh State
+                <button class="btn btn-secondary" onclick="refreshState()" aria-label="Refresh application state">
+                  <span aria-hidden="true">🔃 Refresh State</span>
                 </button>
               </div>
             </div>
@@ -128,18 +128,20 @@
         <div class="settings-section">
           <h3>Convention Configuration</h3>
           <div class="form-group">
-            <label class="form-label">Project Name</label>
-            <input type="text" id="configProjectName" placeholder="My Project" />
+            <label class="form-label" for="configProjectName">Project Name</label>
+            <input type="text" id="configProjectName" placeholder="My Project" aria-describedby="projectNameDesc" />
+            <small id="projectNameDesc" style="color: var(--color-text-muted);">Name of your project for commit messages</small>
           </div>
           <div class="form-group">
-            <label class="form-label">Default Commit Type</label>
-            <select id="configCommitType">
+            <label class="form-label" for="configCommitType">Default Commit Type</label>
+            <select id="configCommitType" aria-describedby="commitTypeDesc">
               <option value="PATCH">PATCH - Bug fixes</option>
               <option value="UPDATE">UPDATE - New features</option>
               <option value="RELEASE">RELEASE - Breaking changes</option>
             </select>
+            <small id="commitTypeDesc" style="color: var(--color-text-muted);">Default type for versioned commits</small>
           </div>
-          <button class="btn btn-primary" onclick="saveConfig()" style="width: 100%;">
+          <button class="btn btn-primary" onclick="saveConfig()" style="width: 100%;" aria-label="Save configuration">
             Save Configuration
           </button>
         </div>
@@ -167,6 +169,7 @@
   </div>
 
   <script src="app.js"></script>
+  <script src="toast.js"></script>
   <script src="app-v070.js"></script>
 </body>
 </html>

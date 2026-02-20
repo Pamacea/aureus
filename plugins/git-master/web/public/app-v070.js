@@ -68,6 +68,9 @@ const ThemeManager = {
 // ============================================================================
 
 const SidebarManager = {
+  backdropHandler: null,
+  keydownHandler: null,
+
   init() {
     const settingsBtn = document.getElementById('settingsBtn');
     const closeSidebarBtn = document.getElementById('closeSidebar');
@@ -81,21 +84,30 @@ const SidebarManager = {
       closeSidebarBtn.addEventListener('click', () => this.close());
     }
 
-    // Close on backdrop click
-    document.addEventListener('click', (e) => {
+    // Close on backdrop click - store reference for cleanup
+    this.backdropHandler = (e) => {
+      const sidebar = document.getElementById('sidebar');
+      const settingsBtn = document.getElementById('settingsBtn');
       if (sidebar && sidebar.classList.contains('open')) {
-        if (!sidebar.contains(e.target) && !settingsBtn.contains(e.target)) {
+        if (!sidebar.contains(e.target) && settingsBtn && !settingsBtn.contains(e.target)) {
           this.close();
         }
       }
-    });
+    };
+    document.addEventListener('click', this.backdropHandler);
 
-    // Close on Escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) {
+    // Close on Escape key - exclude inputs
+    this.keydownHandler = (e) => {
+      const sidebar = document.getElementById('sidebar');
+      if (e.key === 'Escape' &&
+          sidebar &&
+          sidebar.classList.contains('open') &&
+          !e.target.matches('input, textarea, select')) {
+        e.preventDefault();
         this.close();
       }
-    });
+    };
+    document.addEventListener('keydown', this.keydownHandler);
   },
 
   open() {
@@ -120,6 +132,18 @@ const SidebarManager = {
       this.close();
     } else {
       this.open();
+    }
+  },
+
+  destroy() {
+    // Cleanup event listeners to prevent memory leak
+    if (this.backdropHandler) {
+      document.removeEventListener('click', this.backdropHandler);
+      this.backdropHandler = null;
+    }
+    if (this.keydownHandler) {
+      document.removeEventListener('keydown', this.keydownHandler);
+      this.keydownHandler = null;
     }
   }
 };
@@ -210,6 +234,31 @@ const StatusManager = {
 };
 
 // ============================================================================
+// VALIDATOR
+// ============================================================================
+
+const Validator = {
+  sanitizeString(str) {
+    if (typeof str !== 'string') return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  },
+
+  validateNumber(num) {
+    const n = parseInt(num, 10);
+    if (!Number.isFinite(n) || n < 0) return 0;
+    return n;
+  },
+
+  validateRepoName(name) {
+    if (typeof name !== 'string') return '';
+    if (name.length > 255) return name.substring(0, 255);
+    return this.sanitizeString(name);
+  }
+};
+
+// ============================================================================
 // GLOBAL FUNCTIONS (for HTML onclick handlers)
 // ============================================================================
 
@@ -219,20 +268,27 @@ async function scanAllRepos() {
     const response = await fetch(`${API_BASE}/scan-repos`, {
       method: 'POST'
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
     const data = await response.json();
 
     if (data.success) {
-      alert(`Scanned ${data.count} repositories successfully!`);
+      const count = Validator.validateNumber(data.count);
+      Toast.success(`Scanned ${count} repositories successfully!`);
+
       // Refresh state after scan
       if (typeof refreshState === 'function') {
         await refreshState();
       }
     } else {
-      alert('Failed to scan repositories');
+      Toast.error('Failed to scan repositories');
     }
   } catch (error) {
     console.error('Scan error:', error);
-    alert('Error scanning repositories');
+    Toast.error('Error scanning repositories');
   }
 }
 
@@ -241,19 +297,27 @@ async function loadCurrentRepo() {
     const response = await fetch(`${API_BASE}/load-current-repo`, {
       method: 'POST'
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
     const data = await response.json();
 
     if (data.success) {
-      alert(`Loaded repository: ${data.repo}`);
+      const repo = Validator.validateRepoName(data.repo);
+      Toast.success(`Loaded repository: ${repo}`);
+
       if (typeof refreshState === 'function') {
         await refreshState();
       }
     } else {
-      alert(data.error || 'Failed to load repository');
+      const errorMsg = Validator.sanitizeString(data.error || 'Failed to load repository');
+      Toast.error(errorMsg);
     }
   } catch (error) {
     console.error('Load repo error:', error);
-    alert('Error loading repository');
+    Toast.error('Error loading repository');
   }
 }
 
@@ -276,8 +340,11 @@ async function refreshState() {
 
 async function saveConfig() {
   try {
-    const projectName = document.getElementById('configProjectName')?.value;
-    const commitType = document.getElementById('configCommitType')?.value;
+    const projectNameInput = document.getElementById('configProjectName');
+    const commitTypeInput = document.getElementById('configCommitType');
+
+    const projectName = Validator.sanitizeString(projectNameInput?.value || '');
+    const commitType = Validator.sanitizeString(commitTypeInput?.value || 'PATCH');
 
     const response = await fetch(`${API_BASE}/config`, {
       method: 'PUT',
@@ -291,14 +358,14 @@ async function saveConfig() {
     });
 
     if (response.ok) {
-      alert('Configuration saved successfully!');
+      Toast.success('Configuration saved successfully!');
       SidebarManager.close();
     } else {
-      alert('Failed to save configuration');
+      Toast.error('Failed to save configuration');
     }
   } catch (error) {
     console.error('Save config error:', error);
-    alert('Error saving configuration');
+    Toast.error('Error saving configuration');
   }
 }
 
@@ -316,4 +383,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
   StatusManager.destroy();
+  SidebarManager.destroy(); // Cleanup memory leak
 });
