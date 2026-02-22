@@ -1,6 +1,6 @@
 {
-  "name": "git-flow-master",
-  "version": "0.7.2",
+  "name": "aureus",
+  "version": "0.8.1",
   "description": "Advanced Git automation plugin for Claude Code",
   "license": "MIT",
   "scripts": {

@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.1] - 2026-02-22
+
+### Fixed
+
+#### MCP Server Configuration
+- **Fixed:** `.mcp.json` now correctly points to `mcp/server.js` instead of non-existent `mcp-server.js`
+- **Fixed:** MCP server connection now establishes successfully on plugin load
+- **Updated:** Plugin package.json version to 0.8.1 to match release version
+
+#### Installation
+- **Verified:** MCP server starts correctly with bundled ESM module
+- **Verified:** All 21 MCP tools are accessible and functional
+- **Verified:** Web interface runs on http://localhost:3747
+
+---
+
+## [0.8.0] - 2026-02-22
+
+### Added
+
+#### Plugin Restructure
+- **Added:** Root-level `.claude-plugin/plugin.json` with marketplace-compatible configuration
+- **Added:** `hooks/` directory at project root for marketplace installation structure
+- **Added:** Hook scripts for SessionStart, PreToolUse, PostToolUse, and Stop events
+- **Added:** Background server management with `start-background.js`
+- **Added:** Automatic dependency installation with `install-dependencies.js`
+
+#### Cross-Platform Hooks
+- **Added:** PowerShell hooks for Windows (.ps1)
+- **Added:** Bash hooks for Unix/Linux (.sh)
+- **Added:** Platform detection in hook scripts
+- **Added:** Pre-commit hook with secret scanning
+- **Added:** Commit-msg hook for message validation
+- **Added:** Post-release hook for CHANGELOG updates
+
+#### Documentation
+- **Added:** `hooks/README.md` with comprehensive hook documentation
+- **Added:** Installation scripts for hook setup
+- **Added:** Test scripts for hook validation
+
+### Changed
+
+#### Plugin Configuration
+- **Renamed:** Project from "git-flow-master" to "aureus"
+- **Updated:** Plugin namespace to `plugin:aureus:aureus`
+- **Removed:** `"type": "module"` from package.json (hooks use CommonJS)
+
+#### Dependencies
+- **Refactored:** Dependency installation to use shared script
+- **Improved:** Cross-platform npm command detection
+- **Fixed:** Windows-specific npm execution issues
+
+### Migration Notes
+
+#### For Marketplace Users
+- Plugin now installs with all hooks pre-configured
+- Dependencies are installed automatically via postinstall hook
+- Web interface starts automatically on session load
+
+#### For Developers
+- Root `hooks/` directory contains all hook scripts
+- Use `npm install` to install all dependencies
+- Hooks are platform-aware (PowerShell for Windows, Bash for Unix)
+
+---
+
 ## [0.7.2] - 2026-02-20
 
 ### 🚀 Performance Improvements

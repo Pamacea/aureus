@@ -85,9 +85,19 @@ PATCH: Aureus - v1.0.1
 | `git_get_last_commit` | Get last commit details |
 | `git_validate_message` | Validate commit message format |
 | `git_get_status` | Repository status |
+| `git_get_log` | Commit history |
+| `git_get_branch` | Current branch |
+| `git_get_diff` | Git diff |
+| `git_get_tags` | All tags |
 | `git_create_release` | Create release with tag |
 | `git_install_hooks` | Install Git hooks |
 | `git_analyze_commits` | Analyze for version bump |
+| `git_generate_message` | Generate commit message |
+| `git_uninstall_hooks` | Uninstall Git hooks |
+| `git_get_config` | Get Git Flow config |
+| `git_update_config` | Update Git Flow config |
+| `git_get_tracked_repos` | Get tracked repositories |
+| `git_suggest_type` | Suggest commit type |
 
 ---
 

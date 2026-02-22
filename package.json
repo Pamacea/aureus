@@ -3,11 +3,6 @@
   "version": "0.8.0",
   "description": "Aureus - Intelligent Git automation with Versioned Release Convention for Claude Code",
   "license": "MIT",
-  "type": "module",
-  "exports": {
-    ".": "./dist/index.js",
-    "./lib/*": "./lib/*.ts"
-  },
   "scripts": {
     "test": "vitest",
     "test:ui": "vitest --ui",
