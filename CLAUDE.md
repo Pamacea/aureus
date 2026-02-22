@@ -1,12 +1,14 @@
-# Claude Git - Plugin Configuration
+# Aureus - Plugin Configuration
 
-> **Version:** 0.7.2 | **Last Updated:** 2026-02-20
+> **Version:** 0.8.0 | **Last Updated:** 2026-02-22
 
 ---
 
 ## Project Overview
 
-**Claude Git** is a comprehensive Git automation plugin for Claude Code implementing **Versioned Release Convention** with intelligent commit management, auto-releases, and cross-platform hooks.
+**Aureus** is a comprehensive Git automation plugin for Claude Code implementing **Versioned Release Convention** with intelligent commit management, auto-releases, and cross-platform hooks.
+
+*Named after the ancient Roman gold coin, symbolizing quality and excellence in Git workflow automation.*
 
 ---
 
@@ -20,10 +22,10 @@ npm install
 npm test
 
 # Run MCP server
-node plugins/git-master/mcp/server.js
+node plugins/aureus/mcp/server.js
 
 # Start web interface
-node plugins/git-master/web/server.js
+node plugins/aureus/web/server.js
 ```
 
 When installed from marketplace, the plugin:
@@ -54,18 +56,18 @@ TYPE: PROJECT NAME - vVERSION
 ### Examples
 
 ```
-RELEASE: Git Flow Master - v2.0.0
+RELEASE: Aureus - v2.0.0
 
 - Breaking: Redesigned commit message format
 - Breaking: Changed hook configuration structure
 - Added: New amend workflow for small fixes
 
-UPDATE: Git Flow Master - v1.1.0
+UPDATE: Aureus - v1.1.0
 
 - Added: Web interface for repository management
 - Added: Version suggestion API endpoint
 
-PATCH: Git Flow Master - v1.0.1
+PATCH: Aureus - v1.0.1
 
 - Fixed: Pre-commit hook secret scanning pattern
 - Fixed: Commit message validation edge case
@@ -117,9 +119,9 @@ Access at **http://localhost:3747**
 ## Project Structure
 
 ```
-claude-git/
+aureus/
 ├── plugins/
-│   └── git-master/
+│   └── aureus/
 │       ├── lib/                # Shared utilities (NEW in v0.7.2)
 │       │   ├── git/
 │       │   │   ├── executor.ts       # Unified Git execution
@@ -152,39 +154,6 @@ claude-git/
 
 ---
 
-## v0.7.2 Highlights
-
-### 🚀 Performance (60-80% faster)
-- Git operations: 4x faster (400ms → 100ms)
-- Repository scanning: 5-6x faster (50 repos: 60s → 10s)
-- Memory leaks eliminated with automatic cleanup
-
-### 🏗️ Architecture
-- New shared utilities module (`lib/`) eliminates 600+ lines of duplication
-- TypeScript implementation with full type safety
-- Modular structure for better maintainability
-
-### 🔒 Security
-- Command injection vulnerabilities fixed (shell:true → shell:false)
-- CSRF token validation middleware added
-- Content Security Policy tightened (unsafe-inline removed)
-
-### 🧪 Testing
-- Vitest testing framework implemented
-- 70%+ test coverage
-- Unit tests for Git operations, commit parsing, and validation
-
-### 📊 Metrics
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Performance | 5/10 | 9/10 | +80% |
-| Architecture | 3/10 | 8/10 | +167% |
-| Security | 8/10 | 9/10 | +12% |
-| Tests | 1/10 | 7/10 | +600% |
-| Type Safety | 2/10 | 9/10 | +350% |
-
----
-
 ## License
 
-MIT © Yanis
+MIT © oalacea

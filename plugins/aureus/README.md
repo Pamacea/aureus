@@ -54,7 +54,7 @@
 
 ```bash
 # In Claude Code
-/install-plugin claude-git
+/install-plugin aureus
 ```
 
 The web interface **starts automatically** at http://localhost:3747

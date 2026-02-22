@@ -478,5 +478,5 @@ No action required - all changes are backward compatible
 
 ---
 
-- **GitHub:** https://github.com/Pamacea/claude-git
-- **Issues:** https://github.com/Pamacea/claude-git/issues
+- **GitHub:** https://github.com/Pamacea/aureus
+- **Issues:** https://github.com/Pamacea/aureus/issues

@@ -106,7 +106,7 @@ The MCP server is configured via `.claude-plugin/.mcp.json`:
 **Important:** After installing the plugin, run `npm install` in the `mcp/` directory to install the MCP SDK dependencies:
 
 ```bash
-cd plugins/git-master/mcp
+cd plugins/aureus/mcp
 npm install
 ```
 

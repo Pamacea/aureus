@@ -1,6 +1,6 @@
 # ⚡ Claude Git - Git Flow Master Plugin
 
-> **Version:** 0.7.2
+> **Version:** 0.8.0
 > **Author:** Yanis
 > **Category:** Version Control
 
@@ -49,14 +49,14 @@
 
 ```bash
 # In Claude Code
-/install-plugin claude-git
+/install-plugin aureus
 ```
 
 ### Manual Installation
 
 ```bash
-git clone https://github.com/Pamacea/claude-git.git
-cd claude-git
+git clone https://github.com/Pamacea/aureus.git
+cd aureus
 npm install
 ```
 
@@ -72,10 +72,10 @@ npm install
 npm test
 
 # Run MCP server
-node plugins/git-master/mcp/server.js
+node plugins/aureus/mcp/server.js
 
 # Start web interface
-node plugins/git-master/web/server.js
+node plugins/aureus/web/server.js
 ```
 
 ### Auto-Start (Automatic)
@@ -171,7 +171,7 @@ PATCH: Git Flow Master - v1.0.1
 ## 🏗️ Architecture
 
 ```
-plugins/git-master/
+plugins/aureus/
 ├── lib/                      # Shared utilities (NEW in v0.7.2)
 │   ├── git/
 │   │   ├── executor.ts       # Unified Git execution
@@ -456,11 +456,11 @@ PATCH: My Project - v1.0.1
 ## 📁 Project Structure
 
 ```
-claude-git/
+aureus/
 ├── .claude-plugin/
 │   └── marketplace.json       # Marketplace configuration
 ├── plugins/
-│   └── git-master/
+│   └── aureus/
 │       ├── .claude-plugin/
 │       │   └── plugin.json    # Plugin configuration
 │       ├── agents/
@@ -563,12 +563,12 @@ MIT © Yanis
 
 ## 🔗 Links
 
-- [Versioned Release Convention](./plugins/git-master/docs/GIT_CONVENTIONS.md)
-- [Web Interface README](./plugins/git-master/web/README.md)
-- [MCP Server README](./plugins/git-master/mcp/README.md)
-- [Hooks README](./plugins/git-master/hooks/README.md)
-- [GitHub Repository](https://github.com/Pamacea/claude-git)
-- [Issue Tracker](https://github.com/Pamacea/claude-git/issues)
+- [Versioned Release Convention](./plugins/aureus/docs/GIT_CONVENTIONS.md)
+- [Web Interface README](./plugins/aureus/web/README.md)
+- [MCP Server README](./plugins/aureus/mcp/README.md)
+- [Hooks README](./plugins/aureus/hooks/README.md)
+- [GitHub Repository](https://github.com/Pamacea/aureus)
+- [Issue Tracker](https://github.com/Pamacea/aureus/issues)
 
 ---
 

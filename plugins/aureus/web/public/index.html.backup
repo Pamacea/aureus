@@ -878,7 +878,7 @@
 
         var workingDir = await getCurrentDir();
         if (!workingDir) {
-          workingDir = 'C:\\Users\\Yanis\\Projects\\-plugins\\claude-git';
+          workingDir = 'C:\\Users\\Yanis\\Projects\\-plugins\\aureus';
         }
 
         try {
