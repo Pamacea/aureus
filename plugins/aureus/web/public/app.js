@@ -294,6 +294,12 @@ function gitFlowApp() {
         const state = await this.api('/state');
         this.repositories = state.repositories || [];
         this.activeHooks = state.activeHooks || {};
+
+        // Auto-scan if no repositories found
+        if (!this.repositories || this.repositories.length === 0) {
+          console.log('No repositories found, auto-scanning...');
+          await this.scanRepositories();
+        }
       } catch (error) {
         console.error('Failed to load state:', error);
       }
@@ -325,8 +331,16 @@ function gitFlowApp() {
       }
 
       try {
-        const scanPath = this.scanDir || this.getDefaultScanDir();
-        const result = await this.api(`/scan?dir=${encodeURIComponent(scanPath)}&depth=2`);
+        let result;
+        if (this.scanDir) {
+          // Scan specific directory
+          const scanPath = this.scanDir;
+          result = await this.api(`/scan?dir=${encodeURIComponent(scanPath)}&depth=2`);
+        } else {
+          // Scan all default paths (no dir parameter = auto-discover)
+          result = await this.api('/scan');
+        }
+
         this.repositories = result.repositories || [];
 
         this.repositories = this.repositories.map(repo => ({

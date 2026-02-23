@@ -17,6 +17,8 @@ const express = require('express');
 const crypto = require('crypto');
 const helmet = require('helmet');
 const path = require('path');
+const fs = require('fs').promises;
+const os = require('os');
 
 // Import shared utilities from lib/
 const {
@@ -28,6 +30,7 @@ const {
   generateCommitMessage,
   parseVersion,
   bumpVersion,
+  getVersionSuggestions,
   loadConfig,
   saveConfig,
   loadState,
@@ -322,18 +325,57 @@ app.get('/api/scan', async (req, res) => {
 
     // Otherwise, scan all allowed base paths for repositories
     const allRepos = [];
-    const scanPaths = [
-      path.join(os.homedir(), 'Projects'),
-      path.join(os.homedir(), 'projects'),
-      path.join(os.homedir(), 'workspace'),
-      path.join(os.homedir(), 'Workspace'),
-      path.join(os.homedir(), 'git'),
-      path.join(os.homedir(), 'GitHub'),
-      path.join('C:', 'Projects'),
-      path.join('D:', 'Projects'),
-    ];
 
-    // Filter to paths that exist (parallelized)
+    // Dynamic drive and path discovery
+    const scanPaths = [];
+
+    // 1. Add common user home directories
+    const userDirs = ['Projects', 'projects', 'workspace', 'Workspace', 'git', 'GitHub'];
+    for (const dir of userDirs) {
+      scanPaths.push(path.join(os.homedir(), dir));
+    }
+
+    // 2. On Windows, dynamically discover available drives and scan for Projects folders
+    if (process.platform === 'win32') {
+      try {
+        // Get list of available drives by trying to access them
+        const driveLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        for (const letter of driveLetters) {
+          const drivePath = `${letter}:`;
+          const projectsPath = path.join(drivePath, 'Projects');
+
+          try {
+            // Check if drive exists by trying to access it
+            await fs.access(drivePath);
+            // Check if Projects folder exists on this drive
+            await fs.access(projectsPath);
+            scanPaths.push(projectsPath);
+          } catch {
+            // Drive or Projects folder doesn't exist, skip
+          }
+        }
+      } catch (error) {
+        // If drive discovery fails, continue with what we have
+        console.log('Drive discovery skipped:', error.message);
+      }
+    } else {
+      // On Unix-like systems, check common project directories
+      const commonPaths = [
+        '/Users',
+        '/home',
+        '/mnt/c/Projects', // WSL
+      ];
+      for (const commonPath of commonPaths) {
+        try {
+          await fs.access(commonPath);
+          scanPaths.push(commonPath);
+        } catch {
+          // Path doesn't exist
+        }
+      }
+    }
+
+    // Filter to paths that exist and are accessible (parallelized)
     const validPaths = await Promise.all(
       scanPaths.map(async (scanPath) => {
         try {
@@ -778,6 +820,13 @@ function hashForLog(repoPath) {
   const crypto = require('crypto');
   const repoName = path.basename(repoPath);
   return crypto.createHash('sha256').update(repoName).digest('hex').slice(0, 8);
+}
+
+// Helper function to suggest next version
+async function suggestVersion(repoPath) {
+  const suggestions = await getVersionSuggestions(repoPath);
+  // Return PATCH version as default suggestion
+  return suggestions.PATCH;
 }
 
 // ============================================================================
