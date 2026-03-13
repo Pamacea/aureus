@@ -25,6 +25,9 @@ fn main() -> Result<()> {
         cli::Command::Config(cmd) => commands::config::execute(cmd)?,
         cli::Command::Init(cmd) => commands::init::execute(cmd)?,
         cli::Command::Stats(cmd) => commands::stats::execute(cmd)?,
+        cli::Command::Status(cmd) => commands::status::execute(cmd)?,
+        cli::Command::Diff(cmd) => commands::diff::execute(cmd)?,
+        cli::Command::Repo(cmd) => commands::repo::execute(cmd.action)?,
         cli::Command::Update(cmd) => commands::update::execute(cmd)?,
         cli::Command::Completion(cmd) => commands::completion::execute(cmd.shell)?,
     }

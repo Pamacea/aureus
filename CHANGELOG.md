@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.10.0] - 2025-03-13
+
+### Added
+- **`aureus-vrc status`** - Show repository status with VRC formatting and colors
+- **`aureus-vrc diff`** - Show diff of changes with optional --cached flag
+- **`aureus-vrc repo`** - Repository tracking subcommands (track/untrack/list/info)
+- **Shell completions** - Added status, diff, repo to completion scripts
+
+### Changed
+- **Reduced warnings:** From 33 to 25 warnings (-24%)
+- **Better exports** - FileStatus, StatusSummary now exported for use
+
+### Fixed
+- Fixed get_staged_files to work without cached parameter
+- Fixed date formatting in repo tracking display
+
+---
+
 ## [0.9.2] - 2025-03-13
 
 ### Added

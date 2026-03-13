@@ -51,6 +51,15 @@ pub enum Command {
     /// Show commit and release statistics
     Stats(StatsCommand),
 
+    /// Show repository status
+    Status(StatusCommand),
+
+    /// Show diff of changes
+    Diff(DiffCommand),
+
+    /// Manage repository tracking
+    Repo(RepoCommand),
+
     /// Update Aureus to latest version
     Update(UpdateCommand),
 
@@ -240,6 +249,56 @@ pub struct UpdateCommand {
 pub struct CompletionCommand {
     /// Shell type (bash, zsh, fish, powershell, elvish)
     pub shell: String,
+}
+
+#[derive(Args, Clone)]
+pub struct StatusCommand {
+    /// Show short format
+    #[arg(short, long)]
+    pub short: bool,
+
+    /// Show porcelain format (machine-readable)
+    #[arg(long)]
+    pub porcelain: bool,
+}
+
+#[derive(Args, Clone)]
+pub struct DiffCommand {
+    /// Show staged changes only
+    #[arg(short, long)]
+    pub cached: bool,
+
+    /// Show name-status format
+    #[arg(long)]
+    pub name_status: bool,
+
+    /// Output format (unified, name-only)
+    #[arg(short, long)]
+    pub format: Option<String>,
+}
+
+#[derive(Args, Clone)]
+pub struct RepoCommand {
+    #[command(subcommand)]
+    pub action: RepoAction,
+}
+
+#[derive(Subcommand, Clone)]
+pub enum RepoAction {
+    /// Track a repository
+    Track {
+        /// Repository name
+        name: String,
+    },
+
+    /// Untrack a repository
+    Untrack,
+
+    /// List tracked repositories
+    List,
+
+    /// Show current repository info
+    Info,
 }
 
 /// Commit types for Versioned Release Convention
