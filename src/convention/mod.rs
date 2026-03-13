@@ -19,7 +19,7 @@ pub mod parser;
 pub mod version;
 pub mod detect;
 
-pub use parser::{parse_message, generate_message, validate_message, CommitMessage, CommitTypeLocal};
-pub use version::{Version, bump_version, parse_version};
+pub use parser::{parse_message, generate_message};
+pub use version::{bump_version, parse_version};
 pub use detect::detect_commit_type;
 pub use crate::cli::CommitType;

@@ -195,7 +195,7 @@ pub fn get_config_value(key: &str) -> Result<Option<serde_json::Value>> {
 /// Set config value by key (dot notation)
 pub fn set_config_value(key: &str, value: &str) -> Result<()> {
     let mut config = load_config()?;
-    let json = serde_json::to_value(&config)?;
+    let _json = serde_json::to_value(&config)?;
 
     // Simple key assignment (not nested for now)
     match key {

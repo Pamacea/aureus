@@ -73,14 +73,6 @@ impl From<crate::cli::CommitType> for CommitTypeLocal {
 }
 
 /// Parse a commit message in VRC format
-///
-/// # Examples
-///
-/// ```
-/// let msg = parse_message("PATCH: Aureus - v1.0.1\n\n- Fixed: typo").unwrap();
-/// assert_eq!(msg.commit_type, CommitType::Patch);
-/// assert_eq!(msg.version, "v1.0.1");
-/// ```
 pub fn parse_message(message: &str) -> Option<CommitMessage> {
     let lines: Vec<&str> = message.lines().collect();
     let subject = lines.first()?;
@@ -111,17 +103,6 @@ pub fn parse_message(message: &str) -> Option<CommitMessage> {
 }
 
 /// Generate a VRC commit message
-///
-/// # Examples
-///
-/// ```
-/// let msg = generate_message(
-///     CommitType::Update,
-///     "Aureus",
-///     "v1.1.0",
-///     Some("- Added: new feature")
-/// );
-/// ```
 pub fn generate_message(
     commit_type: CommitType,
     project: &str,
@@ -175,7 +156,7 @@ mod tests {
     fn test_parse_vrc_message() {
         let msg = "PATCH: Aureus - v1.0.1\n\n- Fixed: typo";
         let parsed = parse_message(msg).unwrap();
-        assert_eq!(parsed.commit_type, CommitType::Patch);
+        assert_eq!(parsed.commit_type, CommitTypeLocal::Patch);
         assert_eq!(parsed.project, "Aureus");
         assert_eq!(parsed.version, "v1.0.1");
         assert_eq!(parsed.body, Some("- Fixed: typo".to_string()));
@@ -185,14 +166,14 @@ mod tests {
     fn test_parse_vrc_no_body() {
         let msg = "UPDATE: MyProject - v1.1.0";
         let parsed = parse_message(msg).unwrap();
-        assert_eq!(parsed.commit_type, CommitType::Update);
+        assert_eq!(parsed.commit_type, CommitTypeLocal::Update);
         assert_eq!(parsed.body, None);
     }
 
     #[test]
     fn test_generate_message() {
         let msg = generate_message(
-            CommitType::Release,
+            crate::cli::CommitType::Release,
             "Aureus",
             "v2.0.0",
             Some("- Breaking: API redesign"),
@@ -210,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_validate_too_long() {
-        let msg = "UPDATE: Project - v1.0.0: this message is way too long and should fail validation";
+        let msg = "UPDATE: Project - v1.0.0: this message is way too long and should definitely fail validation because it exceeds the maximum allowed subject line length";
         let result = validate_message(msg);
         assert!(result.is_err());
     }

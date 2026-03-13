@@ -4,8 +4,8 @@ use anyhow::{Context, Result};
 use colored::Colorize;
 
 use crate::cli::ReleaseCommand;
-use crate::convention::{self, parse_version, bump_version, CommitType};
-use crate::git::{self, get_current_version, get_repo_path};
+use crate::convention::{bump_version, CommitType};
+use crate::git::{self, get_current_version};
 
 pub fn execute(cmd: ReleaseCommand) -> Result<()> {
     let repo_path = std::env::current_dir()

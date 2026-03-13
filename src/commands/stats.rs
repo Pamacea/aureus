@@ -2,11 +2,9 @@
 
 use anyhow::{Context, Result};
 use colored::Colorize;
-use std::path::PathBuf;
 
 use crate::cli::{StatsCommand, OutputFormat};
-use crate::storage::{self, get_tracker, TrackingEvent};
-use crate::git::get_repo_path;
+use crate::storage::{self, get_tracker};
 
 pub fn execute(cmd: StatsCommand) -> Result<()> {
     let tracker = get_tracker()?;

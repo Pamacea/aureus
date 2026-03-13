@@ -6,22 +6,27 @@ use std::fs;
 
 use crate::cli::InitCommand;
 
-const AUREUS_MD: &str = r#"# Aureus Integration
+const AUREUS_MD: &str = r#"# Aureus VRC Integration
 
-Aureus provides **Versioned Release Convention (VRC)** for Git workflows.
+> **Note**: Add this to your project's CLAUDE.md:
+> ```markdown
+> See \`~/.claude/AUREUS.md\` for Versioned Release Convention (VRC) details.
+> ```
+
+Aureus VRC provides **Versioned Release Convention** for Git workflows.
 
 ## Quick Start
 
 ```bash
 # Create a versioned commit
 git commit -m "feat: new feature"
-# → Automatically rewritten to: aureus commit
+# → Automatically rewritten to: aureus-vrc commit
 
 # Suggest versions
-aureus suggest
+aureus-vrc suggest
 
 # Create a release
-aureus release --auto
+aureus-vrc release --auto
 ```
 
 ## Convention Configuration
@@ -76,7 +81,7 @@ fix bugfix patch corrected hotfix typo
 
 ### Project Name Detection
 
-1. **Config**: Set in `~/.aureus/config.toml`:
+1. **Config**: Set in `~/.aureus-vrc/config.toml`:
    ```toml
    [project]
    name = "MyProject"
@@ -84,24 +89,24 @@ fix bugfix patch corrected hotfix typo
 
 2. **Auto**: Falls back to directory name
 
-3. **Override**: Use `aureus commit --project CustomName`
+3. **Override**: Use `aureus-vrc commit --project CustomName`
 
 ## Commands Reference
 
 | Command | Description |
 |---------|-------------|
-| `aureus commit -m "msg"` | Create versioned commit |
-| `aureus amend -m "more info"` | Amend last commit (same version) |
-| `aureus release --auto` | Create release with tag |
-| `aureus suggest` | Show version suggestions |
-| `aureus config set project.name X` | Set project name |
-| `aureus hooks status` | Check hooks status |
+| `aureus-vrc commit -m "msg"` | Create versioned commit |
+| `aureus-vrc amend -m "more info"` | Amend last commit (same version) |
+| `aureus-vrc release --auto` | Create release with tag |
+| `aureus-vrc suggest` | Show version suggestions |
+| `aureus-vrc config set project.name X` | Set project name |
+| `aureus-vrc hooks status` | Check hooks status |
 
 ## Hook Behavior
 
 The `PreToolUse` hook intercepts:
-- `git commit -m "message"` → `aureus commit -m "message"`
-- `git commit` (no message) → `aureus commit` (prompts for message)
+- `git commit -m "message"` → `aureus-vrc commit -m "message"`
+- `git commit` (no message) → `aureus-vrc commit` (prompts for message)
 
 To bypass: `git commit --no-verify`
 
@@ -116,9 +121,9 @@ Using Aureus saves tokens by:
 
 const HOOK_SCRIPT_BASH: &str = r#"#!/bin/bash
 # Aureus auto-rewrite hook for Claude Code PreToolUse (Unix/macOS/Linux)
-# Transparently rewrites git commit → aureus commit
+# Transparently rewrites git commit → aureus-vrc commit
 
-if ! command -v aureus &>/dev/null || ! command -v jq &>/dev/null; then
+if ! command -v aureus-vrc &>/dev/null || ! command -v jq &>/dev/null; then
   exit 0
 fi
 
@@ -136,11 +141,11 @@ if echo "$CMD" | grep -q '\-m'; then
   MESSAGE=$(echo "$CMD" | sed -n 's/.*-m[[:space:]]*"\([^"]*\)".*/\1/p')
 fi
 
-# Rewrite to aureus commit
+# Rewrite to aureus-vrc commit
 if [ -n "$MESSAGE" ]; then
-  REWRITTEN="aureus commit -m \"$MESSAGE\""
+  REWRITTEN="aureus-vrc commit -m \"$MESSAGE\""
 else
-  REWRITTEN="aureus commit"
+  REWRITTEN="aureus-vrc commit"
 fi
 
 ORIGINAL_INPUT=$(echo "$INPUT" | jq -c '.tool_input')
@@ -159,12 +164,12 @@ jq -n \
 "#;
 
 const HOOK_SCRIPT_POWERSHELL: &str = r#"# Aureus auto-rewrite hook for Claude Code PreToolUse (Windows)
-# Transparently rewrites git commit → aureus commit
-# Requires: aureus CLI and jq (both in PATH)
+# Transparently rewrites git commit → aureus-vrc commit
+# Requires: aureus-vrc CLI and jq (both in PATH)
 
 $ErrorActionPreference = "SilentlyContinue"
 
-if (-not (Get-Command aureus -ErrorAction SilentlyContinue)) -or (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command aureus-vrc -ErrorAction SilentlyContinue)) -or (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
     exit 0
 }
 
@@ -182,11 +187,11 @@ if ($CMD -match '\-m\s+"([^"]+)"') {
     $MESSAGE = $matches[1]
 }
 
-# Rewrite to aureus commit
+# Rewrite to aureus-vrc commit
 if ($MESSAGE) {
-    $REWRITTEN = "aureus commit -m `"$MESSAGE`""
+    $REWRITTEN = "aureus-vrc commit -m `"$MESSAGE`""
 } else {
-    $REWRITTEN = "aureus commit"
+    $REWRITTEN = "aureus-vrc commit"
 }
 
 $UPDATED = @{
@@ -271,7 +276,7 @@ fn init_global(force: bool, no_hooks: bool) -> Result<()> {
     println!("{}", "Next steps:".bold());
     println!("  1. Restart Claude Code");
     println!("  2. Try: {}", "git commit -m \"feat: new feature\"".cyan());
-    println!("     → Will be rewritten to aureus commit automatically");
+    println!("     → Will be rewritten to aureus-vrc commit automatically");
 
     Ok(())
 }
@@ -314,7 +319,7 @@ fn update_settings_json(claude_dir: &std::path::Path, hook_filename: &str) -> Re
     // Determine matcher based on platform
     let matcher = if is_windows { "Command" } else { "Bash" };
 
-    // Check if aureus hook already exists
+    // Check if aureus-vrc hook already exists
     let pre_tool_uses = settings["hooks"]["PreToolUse"].as_array_mut()
         .context("Invalid hooks.PreToolUse format")?;
 
@@ -334,7 +339,7 @@ fn update_settings_json(claude_dir: &std::path::Path, hook_filename: &str) -> Re
                                 .unwrap_or(false)
                                 && h.get("command")
                                     .and_then(|c| c.as_str())
-                                    .map(|c| c.contains("aureus-rewrite"))
+                                    .map(|c| c.contains("aureus-vrc-rewrite"))
                                     .unwrap_or(false)
                         })
                     })

@@ -20,7 +20,7 @@ pub fn execute(cmd: HooksCommand) -> Result<()> {
     }
 }
 
-fn install(global: bool) -> Result<()> {
+fn install(_global: bool) -> Result<()> {
     let repo_path = std::env::current_dir()
         .context("Cannot get current directory")?;
 
@@ -49,7 +49,7 @@ fn install(global: bool) -> Result<()> {
     Ok(())
 }
 
-fn uninstall(global: bool) -> Result<()> {
+fn uninstall(_global: bool) -> Result<()> {
     let repo_path = std::env::current_dir()
         .context("Cannot get current directory")?;
 

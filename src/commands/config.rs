@@ -1,9 +1,9 @@
 //! Config command implementation
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use colored::Colorize;
 
-use crate::cli::{ConfigCommand, OutputFormat};
+use crate::cli::ConfigCommand;
 use crate::storage::{self, load_config, save_config, set_config_value};
 
 pub fn execute(cmd: ConfigCommand) -> Result<()> {
@@ -51,7 +51,7 @@ fn set_value(key: &str, value: &str) -> Result<()> {
     Ok(())
 }
 
-fn list_config(all: bool) -> Result<()> {
+fn list_config(_all: bool) -> Result<()> {
     let config = load_config()?;
 
     println!("\n{}", "Aureus Configuration:".bold().cyan());

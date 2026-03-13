@@ -2,11 +2,9 @@
 
 use anyhow::{Context, Result, anyhow};
 use git2::{
-    Repository, Signature, Time, Oid, Commit, ObjectType,
-    StatusOptions, Status as GitStatus,
+    Repository, Signature, Commit,
 };
 use std::path::{Path, PathBuf};
-use std::fs;
 
 /// Open repository, searching upwards from given path
 pub fn get_repo(path: &Path) -> Result<Repository> {
@@ -226,7 +224,7 @@ mod tests {
         std::env::set_var("GIT_AUTHOR_EMAIL", "test@example.com");
 
         let sig = signature().unwrap();
-        assert_eq!(sig.name(), "Test User");
-        assert_eq!(sig.email(), "test@example.com");
+        assert_eq!(sig.name(), Some("Test User"));
+        assert_eq!(sig.email(), Some("test@example.com"));
     }
 }

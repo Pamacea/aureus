@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.2] - 2025-03-13
+
+### Added
+- **`aureus-vrc update`** - Self-update command to check and update to latest version
+- **`aureus-vrc completion`** - Generate shell completion scripts (bash, zsh, fish, powershell, elvish)
+- **CLAUDE.md integration note** - AUREUS.md now includes instruction to add reference in project CLAUDE.md
+- **Version comparison** - Automatic version checking with semver
+
+### Changed
+- **Renamed:** `aureus` → `aureus-vrc` (crates.io naming conflict resolved)
+- **Reduced warnings:** From 73 to 39 warnings (code cleanup)
+- **Updated documentation** - All commands now use `aureus-vrc` naming
+
+### Fixed
+- Fixed variable naming issues after rename (aureus-vrc_dir → aureus_dir)
+- Fixed shell completion format string escaping
+
+---
+
+## [0.9.1] - 2025-03-13
+
+### Fixed
+- Fixed `include` in Cargo.toml to properly package source files for crates.io
+
+---
+
 ## [0.9.0] - 2025-03-13
 
 ### 🚀 Major Rewrite - Native Rust CLI

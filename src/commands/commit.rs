@@ -5,8 +5,8 @@ use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 
 use crate::cli::CommitCommand;
-use crate::convention::{self, generate_message, detect_commit_type};
-use crate::git::{self, get_repo_path};
+use crate::convention::{generate_message, detect_commit_type};
+use crate::git::{self};
 use crate::storage::{self, TrackingEvent, get_tracker};
 
 pub fn execute(cmd: CommitCommand) -> Result<()> {

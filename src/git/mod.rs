@@ -6,10 +6,7 @@ pub mod hooks;
 pub mod diff;
 pub mod status;
 
-pub use executor::{add_files, create_commit, get_last_commit, get_repo, get_tags, get_current_branch, is_repo, amend_last_commit, create_tag};
-pub use hooks::{install_hooks, uninstall_hooks, hooks_status};
-pub use diff::{get_diff, get_staged_files};
-pub use status::{get_status, StatusEntry};
+pub use executor::{add_files, create_commit, get_last_commit, get_tags, is_repo, amend_last_commit, create_tag};
 
 use crate::cli::CommitType;
 
@@ -31,7 +28,7 @@ pub fn get_current_version(repo_path: &std::path::Path) -> Option<String> {
 
 /// Determine next version based on last commit and changes
 pub fn determine_next_version(
-    repo_path: &std::path::Path,
+    _repo_path: &std::path::Path,
     commit_type: CommitType,
     current_version: Option<&str>,
 ) -> String {

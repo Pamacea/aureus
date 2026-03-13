@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand, ValueEnum, Args};
 #[derive(Parser)]
 #[command(name = "aureus")]
 #[command(about = "Aureus - Versioned Release Convention CLI", long_about = None)]
-#[command(version = "0.9.0")]
+#[command(version = "0.9.2")]
 #[command(author = "Yanis <yanis@example.com>")]
 #[command(propagate_version = true)]
 pub struct CliArgs {
@@ -50,6 +50,12 @@ pub enum Command {
 
     /// Show commit and release statistics
     Stats(StatsCommand),
+
+    /// Update Aureus to latest version
+    Update(UpdateCommand),
+
+    /// Generate shell completion scripts
+    Completion(CompletionCommand),
 }
 
 #[derive(Args, Clone)]
@@ -217,6 +223,23 @@ pub struct StatsCommand {
     /// Output format
     #[arg(short, long, value_enum, default_value_t = OutputFormat::Text)]
     pub format: OutputFormat,
+}
+
+#[derive(Args, Clone)]
+pub struct UpdateCommand {
+    /// Force update even if already on latest version
+    #[arg(long)]
+    pub force: bool,
+
+    /// Don't install, just show latest version
+    #[arg(long)]
+    pub check_only: bool,
+}
+
+#[derive(Args, Clone)]
+pub struct CompletionCommand {
+    /// Shell type (bash, zsh, fish, powershell, elvish)
+    pub shell: String,
 }
 
 /// Commit types for Versioned Release Convention

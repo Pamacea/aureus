@@ -2,7 +2,7 @@
 
 use anyhow::{Context, Result};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 const HOOKS_DIR: &str = ".git/hooks";
 const COMMIT_MSG_HOOK: &str = "commit-msg";
@@ -87,7 +87,7 @@ pub fn hooks_status(repo_path: &Path) -> Result<HookStatus> {
     let hooks_dir = repo_path.join(HOOKS_DIR);
 
     let mut installed = Vec::new();
-    let mut failed = Vec::new();
+    let failed = Vec::new();
 
     for hook_name in [COMMIT_MSG_HOOK, PRE_COMMIT_HOOK] {
         let hook_path = hooks_dir.join(hook_name);
@@ -144,7 +144,7 @@ pub fn validate_commit_message(msg_file: &Path) -> Result<bool> {
 }
 
 /// Run pre-commit checks
-pub fn run_pre_commit(repo_path: &Path) -> Result<bool> {
+pub fn run_pre_commit(_repo_path: &Path) -> Result<bool> {
     // For now, just pass
     // TODO: Add secret scanning, linting, etc.
     Ok(true)

@@ -1,7 +1,7 @@
 //! Git diff operations
 
 use anyhow::{Context, Result};
-use git2::{Repository, Diff, DiffOptions, StatusOptions};
+use git2::{Repository, Diff, DiffOptions};
 use std::path::Path;
 
 /// Get diff between working tree and index
@@ -47,12 +47,12 @@ pub fn get_staged_files(repo_path: &Path) -> Result<Vec<String>> {
 }
 
 fn diff_to_string(diff: &Diff) -> Result<String> {
-    use git2::DiffFormat;
+    
 
     let mut buf = Vec::new();
     diff.print(
         git2::DiffFormat::Patch,
-        |delta, hunk, line| {
+        |_delta, _hunk, line| {
             let origin = line.origin();
             if origin != '\0' {
                 buf.push(origin as u8);

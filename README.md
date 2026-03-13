@@ -1,4 +1,4 @@
-# Aureus - Versioned Release Convention CLI
+# Aureus VRC - Versioned Release Convention CLI
 
 > **Git workflow automation** with automatic semantic versioning for structured commits.
 
@@ -6,10 +6,10 @@
 
 ```bash
 # Install
-cargo install --path .
+cargo install aureus-vrc
 
 # Initialize for Claude Code
-aureus init --global
+aureus-vrc init --global
 
 # Usage
 git commit -m "feat: new feature"
@@ -20,11 +20,11 @@ git commit -m "feat: new feature"
 
 | Command | Description |
 |---------|-------------|
-| `aureus commit -m "msg"` | Create versioned commit |
-| `aureus amend -m "more"` | Amend last commit |
-| `aureus release --auto` | Create release with tag |
-| `aureus suggest` | Show version suggestions |
-| `aureus hooks status` | Check hooks status |
+| `aureus-vrc commit -m "msg"` | Create versioned commit |
+| `aureus-vrc amend -m "more"` | Amend last commit |
+| `aureus-vrc release --auto` | Create release with tag |
+| `aureus-vrc suggest` | Show version suggestions |
+| `aureus-vrc hooks status` | Check hooks status |
 
 ## VRC Format
 

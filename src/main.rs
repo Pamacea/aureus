@@ -1,8 +1,7 @@
 //! Aureus - Versioned Release Convention CLI
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::Parser;
-use colored::Colorize;
 
 mod cli;
 mod commands;
@@ -26,6 +25,8 @@ fn main() -> Result<()> {
         cli::Command::Config(cmd) => commands::config::execute(cmd)?,
         cli::Command::Init(cmd) => commands::init::execute(cmd)?,
         cli::Command::Stats(cmd) => commands::stats::execute(cmd)?,
+        cli::Command::Update(cmd) => commands::update::execute(cmd)?,
+        cli::Command::Completion(cmd) => commands::completion::execute(cmd.shell)?,
     }
 
     Ok(())
