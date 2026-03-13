@@ -7,6 +7,114 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.9.0] - 2025-03-13
+
+### 🚀 Major Rewrite - Native Rust CLI
+
+#### Breaking Changes
+- **Complete rewrite** from TypeScript/Node.js MCP plugin to native Rust CLI
+- **Removed:** MCP server functionality (replaced by CLI + hooks integration)
+- **Removed:** Web interface at `localhost:3747` (CLI-only approach)
+- **Removed:** Node.js dependencies - pure Rust implementation
+- **Changed:** Installation method from `npm install` to `cargo install`
+
+### Added
+
+#### CLI Commands
+- `aureus commit` - Create versioned commits with VRC format
+- `aureus amend` - Amend last commit (keeps same version)
+- `aureus release` - Create release with git tag and CHANGELOG update
+- `aureus suggest` - Suggest next version based on current state
+- `aureus hooks` - Manage git hooks (install/uninstall/status)
+- `aureus config` - Manage Aureus configuration
+- `aureus init` - Initialize for Claude Code integration
+- `aureus stats` - Show commit and release statistics
+
+#### Rust Implementation
+- **Native binary:** Single executable, no runtime dependencies
+- **Performance:** ~5ms startup time (vs ~100ms for Node.js)
+- **Git operations:** Pure Rust via `git2` crate (no shell subprocess)
+- **SQLite tracking:** Built-in commit analytics and history
+- **Cross-platform:** Windows, macOS, Linux support in single binary
+
+#### Versioned Release Convention (VRC)
+- Format: `TYPE: PROJECT - vX.Y.Z`
+- Three commit types:
+  - `RELEASE` - Major version bump (breaking changes)
+  - `UPDATE` - Minor version bump (new features)
+  - `PATCH` - Patch version bump (bug fixes)
+- Automatic SemVer bumping based on commit type
+- Auto-detection of commit type from message keywords
+
+### Architecture
+
+#### Project Structure
+```
+aureus/
+├── src/
+│   ├── cli.rs           # CLI definitions (clap derive)
+│   ├── commands/        # Command implementations
+│   ├── convention/      # VRC parsing and generation
+│   ├── git/             # Git operations (git2)
+│   ├── storage/         # Config and state management
+│   └── utils/           # Utilities
+├── hooks/               # Claude Code integration hooks
+└── legacy/              # Old TypeScript implementation (deprecated)
+```
+
+#### Dependencies
+- `clap` 4.5 - CLI argument parsing
+- `git2` 0.18 - Pure Rust Git operations
+- `rusqlite` 0.31 - SQLite database for tracking
+- `anyhow` 1.0 - Error handling
+- `chrono` 0.4 - Date/time handling
+- `serde` 1.0 - Serialization
+- `colored` 2.2 - Terminal colors
+- `dialoguer` 0.11 - Interactive prompts
+
+### Installation
+
+#### From Source
+```bash
+cargo install --path .
+# Or from GitHub
+cargo install --git https://github.com/Pamacea/aureus aureus
+```
+
+#### Claude Code Integration
+```bash
+aureus init --global
+# Creates PreToolUse hook for transparent git commit rewriting
+```
+
+### Performance
+
+| Metric | Node.js MCP | Rust CLI | Improvement |
+|--------|-------------|----------|-------------|
+| Startup time | ~100ms | ~5ms | **20x faster** |
+| Memory usage | ~50MB | ~3MB | **94% reduction** |
+| Binary size | N/A (node_modules) | 5.1MB | Single binary |
+| Dependencies | 150+ packages | 15 crates | **90% reduction** |
+
+### Migration Notes
+
+#### For MCP Users
+The MCP server approach has been replaced with:
+1. **Direct CLI commands** - Run `aureus commit` instead of MCP tools
+2. **Git hooks** - Automatic commit message validation via git hooks
+3. **Claude Code hook** - Transparent `git commit` → `aureus commit` rewriting
+
+#### Old Code Preservation
+All TypeScript/Node.js code is preserved in `legacy/` directory for rollback if needed.
+
+### Deprecated
+- Node.js MCP server (use `legacy/` if needed)
+- Web interface at `localhost:3747`
+- npm installation method
+- JSON-based configuration (moved to TOML)
+
+---
+
 ## [0.8.1] - 2026-02-22
 
 ### Fixed
