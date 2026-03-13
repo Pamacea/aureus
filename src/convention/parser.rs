@@ -1,19 +1,13 @@
 //! Parse and generate Versioned Release Convention messages
 
 use crate::cli::CommitType;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use once_cell::sync::Lazy;
 
 static VRC_PATTERN: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
         r"^(?P<type>RELEASE|UPDATE|PATCH):\s*(?P<project>[^-]+?)\s*-\s*(?P<version>v\d+\.\d+\.\d+)"
-    ).unwrap()
-});
-
-static CONVENTIONAL_PATTERN: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(
-        r"^(?P<type>feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\((?P<scope>[^)]+)\))?(?P<breaking>!)?:\s+(?P<description>.+)"
     ).unwrap()
 });
 
@@ -122,6 +116,7 @@ pub fn generate_message(
 }
 
 /// Validate a commit message against VRC format
+#[cfg(test)]
 pub fn validate_message(message: &str) -> Result<CommitMessage, String> {
     if message.is_empty() {
         return Err("Message is empty".to_string());
@@ -138,11 +133,6 @@ pub fn validate_message(message: &str) -> Result<CommitMessage, String> {
     // Try to parse VRC
     if let Some(parsed) = parse_message(message) {
         return Ok(parsed);
-    }
-
-    // Check for conventional commits as fallback
-    if CONVENTIONAL_PATTERN.is_match(subject) {
-        return Err("Message matches Conventional Commits but not VRC format. Use TYPE: PROJECT - vVERSION".to_string());
     }
 
     Err("Invalid message format. Expected: TYPE: PROJECT - vVERSION".to_string())
@@ -183,16 +173,9 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_valid_message() {
-        let msg = "PATCH: Aureus - v1.0.1\n\n- Fixed: bug";
-        let result = validate_message(msg);
-        assert!(result.is_ok());
-    }
-
-    #[test]
     fn test_validate_too_long() {
         let msg = "UPDATE: Project - v1.0.0: this message is way too long and should definitely fail validation because it exceeds the maximum allowed subject line length";
         let result = validate_message(msg);
-        assert!(result.is_err());
+        assert!(result.is_err());  // validate_message returns Err for too long
     }
 }

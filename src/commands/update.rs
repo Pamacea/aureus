@@ -1,6 +1,6 @@
 //! Self-update command implementation
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use colored::Colorize;
 use std::env;
 

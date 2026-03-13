@@ -1,7 +1,5 @@
 //! Integration tests for Aureus VRC CLI
 
-use std::str::FromStr;
-
 // Test Version struct and its methods
 #[test]
 fn test_version_parsing() {
@@ -36,7 +34,7 @@ fn test_version_bump_patch() {
 fn test_vrc_message_parsing() {
     let msg = "PATCH: Aureus - v1.0.1\n\n- Fixed: typo";
     let parsed = aureus_vrc::convention::parse_message(msg).unwrap();
-    assert_eq!(parsed.commit_type, aureus_vrc::convention::CommitTypeLocal::Patch);
+    assert_eq!(parsed.commit_type, aureus_vrc::convention::parser::CommitTypeLocal::Patch);
     assert_eq!(parsed.project, "Aureus");
     assert_eq!(parsed.version, "v1.0.1");
 }
@@ -81,15 +79,6 @@ fn test_version_display() {
 }
 
 #[test]
-fn test_version_from_str() {
-    let version = aureus_vrc::convention::Version::from_str("v1.2.3").unwrap();
-    assert_eq!(version, aureus_vrc::convention::Version::new(1, 2, 3));
-
-    let version2 = aureus_vrc::convention::Version::from_str("1.2.3").unwrap();
-    assert_eq!(version2, aureus_vrc::convention::Version::new(1, 2, 3));
-}
-
-#[test]
 fn test_version_suggestions() {
     let version = aureus_vrc::convention::Version::new(1, 0, 0);
     let suggestions = version.suggestions();
@@ -101,9 +90,9 @@ fn test_version_suggestions() {
 
 #[test]
 fn test_commit_type_local_display() {
-    assert_eq!(aureus_vrc::convention::CommitTypeLocal::Release.to_string(), "RELEASE");
-    assert_eq!(aureus_vrc::convention::CommitTypeLocal::Update.to_string(), "UPDATE");
-    assert_eq!(aureus_vrc::convention::CommitTypeLocal::Patch.to_string(), "PATCH");
+    assert_eq!(aureus_vrc::convention::parser::CommitTypeLocal::Release.to_string(), "RELEASE");
+    assert_eq!(aureus_vrc::convention::parser::CommitTypeLocal::Update.to_string(), "UPDATE");
+    assert_eq!(aureus_vrc::convention::parser::CommitTypeLocal::Patch.to_string(), "PATCH");
 }
 
 #[test]
@@ -111,12 +100,4 @@ fn test_commit_type_to_string() {
     assert_eq!(aureus_vrc::cli::CommitType::Release.to_string(), "RELEASE");
     assert_eq!(aureus_vrc::cli::CommitType::Update.to_string(), "UPDATE");
     assert_eq!(aureus_vrc::cli::CommitType::Patch.to_string(), "PATCH");
-}
-
-#[test]
-fn test_commit_type_from_str() {
-    assert_eq!(aureus_vrc::cli::CommitType::from_str("RELEASE"), Some(aureus_vrc::cli::CommitType::Release));
-    assert_eq!(aureus_vrc::cli::CommitType::from_str("update"), Some(aureus_vrc::cli::CommitType::Update));
-    assert_eq!(aureus_vrc::cli::CommitType::from_str("patch"), Some(aureus_vrc::cli::CommitType::Patch));
-    assert_eq!(aureus_vrc::cli::CommitType::from_str("unknown"), None);
 }

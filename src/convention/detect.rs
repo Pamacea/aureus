@@ -34,6 +34,7 @@ pub fn detect_commit_type(message: &str) -> Option<CommitType> {
 /// - Changes to Cargo.toml, package.json → UPDATE
 /// - Test file changes only → PATCH
 /// - README, docs → PATCH
+#[cfg(test)]
 pub fn infer_from_files(files: &[String]) -> Option<CommitType> {
     let has_manifest = files.iter().any(|f| {
         f.ends_with("Cargo.toml") || f.ends_with("package.json") || f.ends_with("go.mod")

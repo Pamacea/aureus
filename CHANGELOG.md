@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.10.1] - 2025-03-13
+
+### Changed
+- **Reduced warnings:** From 20 to 14 warnings (-30%)
+- **Conditional compilation:** Utility functions now only compile in test mode (`#[cfg(test)]`)
+  - `truncate`, `strip_ansi`, `get_repo_path_cwd`, `find_repo_root`, `ProjectType`
+- **Unused functions behind test-only:**
+  - `validate_message` in parser.rs
+  - `infer_from_files` in detect.rs
+
+### Fixed
+- Removed unused imports in status.rs, repo.rs, update.rs
+
+---
+
 ## [0.10.0] - 2025-03-13
 
 ### Added

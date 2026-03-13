@@ -2,7 +2,6 @@
 
 use anyhow::{Context, Result};
 use colored::Colorize;
-use std::path::Path;
 
 use crate::cli::RepoAction;
 use crate::git::get_current_version;

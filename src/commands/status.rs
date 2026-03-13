@@ -5,7 +5,7 @@ use colored::Colorize;
 use std::path::Path;
 
 use crate::cli::StatusCommand;
-use crate::git::{get_status, get_status_summary, FileStatus};
+use crate::git::{get_status_summary, FileStatus};
 
 pub fn execute(cmd: StatusCommand) -> Result<()> {
     let repo_path = Path::new(".");

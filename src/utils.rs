@@ -1,9 +1,11 @@
 //! Shared utility functions
 
+#[cfg(test)]
 use anyhow::{Context, Result};
 use std::path::Path;
 
 /// Truncate string to max length with ellipsis
+#[cfg(test)]
 pub fn truncate(s: &str, max: usize) -> String {
     if s.len() <= max {
         return s.to_string();
@@ -13,12 +15,14 @@ pub fn truncate(s: &str, max: usize) -> String {
 }
 
 /// Strip ANSI escape codes from string
+#[cfg(test)]
 pub fn strip_ansi(s: &str) -> String {
     let re = regex::Regex::new(r"\x1b\[[0-9;]*m").unwrap();
     re.replace_all(s, "").to_string()
 }
 
 /// Get current git repository path
+#[cfg(test)]
 pub fn get_repo_path_cwd() -> Result<std::path::PathBuf> {
     let cwd = std::env::current_dir()
         .context("Cannot get current directory")?;
@@ -27,6 +31,7 @@ pub fn get_repo_path_cwd() -> Result<std::path::PathBuf> {
 }
 
 /// Find repository root by searching upwards
+#[cfg(test)]
 pub fn find_repo_root(path: &Path) -> Result<std::path::PathBuf> {
     let mut current = Some(path.to_path_buf());
 
@@ -44,6 +49,7 @@ pub fn find_repo_root(path: &Path) -> Result<std::path::PathBuf> {
 }
 
 /// Detect project type from files
+#[cfg(test)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum ProjectType {
     Rust,
@@ -53,6 +59,7 @@ pub enum ProjectType {
     Unknown,
 }
 
+#[cfg(test)]
 impl ProjectType {
     pub fn detect(path: &Path) -> Self {
         if path.join("Cargo.toml").exists() {
