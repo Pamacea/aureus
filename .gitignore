@@ -21,3 +21,6 @@ build/
 
 # Local config
 .aureus/
+.smite/
+.ex-g-se/
+.claude/

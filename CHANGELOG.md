@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.11.2] - 2025-03-15
+
+### Fixed
+- **Hook binary name:** PreToolUse hook now correctly uses `aureus-vrc` instead of `aureus`
+- **Duplicate hooks:** `init --global` now removes ALL existing aureus-rewrite hooks before adding a new one (prevents accumulation)
+- **Hook detection:** Fixed pattern matching from `aureus-vrc-rewrite` to `aureus-rewrite` for correct duplicate detection
+- **PowerShell hook syntax:** Simplified complex `if` condition to avoid PowerShell parser errors on Windows
+- **Removed jq dependency:** PowerShell hook no longer requires `jq` (uses native PowerShell cmdlets)
+- **CRLF line endings:** Windows hooks now correctly use CRLF line terminators
+- **Arrow character:** Fixed `→` character in comments that caused encoding issues
+
+### Changed
+- **Cross-platform hooks:** Each platform now gets the correct hook type during installation
+  - Windows: `aureus-rewrite.ps1` with `"Command"` matcher
+  - macOS/Linux: `aureus-rewrite.sh` with `"Bash"` matcher
+
+---
+
 ## [0.11.1] - 2025-03-13
 
 ### Fixed

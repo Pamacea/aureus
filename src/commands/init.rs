@@ -164,20 +164,24 @@ jq -n \
 "#;
 
 const HOOK_SCRIPT_POWERSHELL: &str = r#"# Aureus auto-rewrite hook for Claude Code PreToolUse (Windows)
-# Transparently rewrites git commit → aureus-vrc commit
-# Requires: aureus-vrc CLI and jq (both in PATH)
+# Transparently rewrites git commit to aureus-vrc commit
+# Requires: aureus-vrc CLI
 
 $ErrorActionPreference = "SilentlyContinue"
 
-if (-not (Get-Command aureus-vrc -ErrorAction SilentlyContinue)) -or (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
+# Check if aureus-vrc is available
+$hasAureus = Get-Command aureus-vrc -ErrorAction SilentlyContinue
+
+if (-not $hasAureus) {
     exit 0
 }
 
-$INPUT = $Input | ConvertFrom-Json
-$CMD = $INPUT.tool_input.command
+# Read input from stdin
+$inputObj = $Input | ConvertFrom-Json
+$CMD = $inputObj.tool_input.command
 
 # Skip if not git commit
-if ($CMD -notmatch '^git\s+commit') {
+if ($CMD -notmatch "^git\s+commit") {
     exit 0
 }
 
@@ -194,18 +198,21 @@ if ($MESSAGE) {
     $REWRITTEN = "aureus-vrc commit"
 }
 
+# Build output
 $UPDATED = @{
     command = $REWRITTEN
 } | ConvertTo-Json -Compress
 
-@{
+$result = @{
     hookSpecificOutput = @{
         hookEventName = "PreToolUse"
         permissionDecision = "allow"
         permissionDecisionReason = "Aureus auto-rewrite"
         updatedInput = ($UPDATED | ConvertFrom-Json)
     }
-} | ConvertTo-Json -Compress
+}
+
+Write-Output ($result | ConvertTo-Json -Compress)
 "#;
 
 pub fn execute(cmd: InitCommand) -> Result<()> {
@@ -251,7 +258,14 @@ fn init_global(force: bool, no_hooks: bool) -> Result<()> {
 
         let hook_path = claude_dir.join("hooks").join(hook_filename);
         if !hook_path.exists() || force {
-            fs::write(&hook_path, hook_content)
+            // Convert LF to CRLF on Windows for PowerShell scripts
+            let content_to_write = if is_windows {
+                hook_content.replace('\n', "\r\n")
+            } else {
+                hook_content.to_string()
+            };
+
+            fs::write(&hook_path, content_to_write)
                 .context("Failed to write hook script")?;
 
             // Make executable on Unix
@@ -319,48 +333,47 @@ fn update_settings_json(claude_dir: &std::path::Path, hook_filename: &str) -> Re
     // Determine matcher based on platform
     let matcher = if is_windows { "Command" } else { "Bash" };
 
-    // Check if aureus-vrc hook already exists
+    // Clean up ALL existing aureus-rewrite hooks (removes duplicates)
     let pre_tool_uses = settings["hooks"]["PreToolUse"].as_array_mut()
         .context("Invalid hooks.PreToolUse format")?;
 
-    let already_exists = pre_tool_uses.iter()
-        .any(|entry| {
-            entry.get("matcher")
-                .and_then(|m| m.as_str())
-                .map(|m| m == matcher)
-                .unwrap_or(false)
-                && entry.get("hooks")
-                    .and_then(|h| h.as_array())
-                    .map(|hooks| {
-                        hooks.iter().any(|h| {
-                            h.get("type")
-                                .and_then(|t| t.as_str())
-                                .map(|t| t == "command")
+    let filtered_hooks: Vec<_> = pre_tool_uses.iter()
+        .filter(|entry| {
+            // Keep entries that are NOT aureus-rewrite hooks
+            !entry.get("hooks")
+                .and_then(|h| h.as_array())
+                .map(|hooks| {
+                    hooks.iter().any(|h| {
+                        h.get("type")
+                            .and_then(|t| t.as_str())
+                            .map(|t| t == "command")
+                            .unwrap_or(false)
+                            && h.get("command")
+                                .and_then(|c| c.as_str())
+                                .map(|c| c.contains("aureus-rewrite"))
                                 .unwrap_or(false)
-                                && h.get("command")
-                                    .and_then(|c| c.as_str())
-                                    .map(|c| c.contains("aureus-vrc-rewrite"))
-                                    .unwrap_or(false)
-                        })
                     })
-                    .unwrap_or(false)
-        });
+                })
+                .unwrap_or(false)
+        })
+        .cloned()
+        .collect();
 
-    if !already_exists {
-        let aureus_hook = serde_json::json!({
-            "matcher": matcher,
-            "hooks": [{
-                "type": "command",
-                "command": hook_path
-            }]
-        });
+    // Replace with filtered hooks (no duplicates)
+    *pre_tool_uses = filtered_hooks;
 
-        pre_tool_uses.push(aureus_hook);
-        let _ = fs::write(&settings_path, serde_json::to_string_pretty(&settings)?);
-        println!("  ✓ {}", "Updated ~/.claude/settings.json".green());
-    } else {
-        println!("  {}", "Hook already registered in settings.json".dimmed());
-    }
+    // Add the single clean hook
+    let aureus_hook = serde_json::json!({
+        "matcher": matcher,
+        "hooks": [{
+            "type": "command",
+            "command": hook_path
+        }]
+    });
+
+    pre_tool_uses.push(aureus_hook);
+    let _ = fs::write(&settings_path, serde_json::to_string_pretty(&settings)?);
+    println!("  ✓ {}", "Updated ~/.claude/settings.json (cleaned duplicates)".green());
 
     Ok(())
 }
