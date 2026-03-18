@@ -104,11 +104,19 @@ fix bugfix patch corrected hotfix typo
 
 ## Hook Behavior
 
-The `PreToolUse` hook intercepts:
+The `PreToolUse` hook (Node.js module) intercepts:
 - `git commit -m "message"` → `aureus-vrc commit -m "message"`
 - `git commit` (no message) → `aureus-vrc commit` (prompts for message)
+- `git commit --amend` → `aureus-vrc commit --amend`
 
-To bypass: `git commit --no-verify`
+To bypass: `git commit --no-verify` or use `aureus-vrc commit` directly.
+
+## Hook File
+
+Hook location: `~/.claude/hooks/aureus-rewrite.cjs`
+
+This Node.js module integrates with Claude Code's hook system to transparently
+rewrite git commands to aureus-vrc commands.
 
 ## Token Savings
 
@@ -117,102 +125,69 @@ Using Aureus saves tokens by:
 - ✅ Auto-formatting commit messages
 - ✅ Version auto-detection from keywords
 - ✅ Single binary (~3MB RAM vs ~50MB for Node.js)
+- ✅ Lightweight Node.js hook (minimal overhead)
 "#;
 
-const HOOK_SCRIPT_BASH: &str = r#"#!/bin/bash
-# Aureus auto-rewrite hook for Claude Code PreToolUse (Unix/macOS/Linux)
-# Transparently rewrites git commit → aureus-vrc commit
+const HOOK_SCRIPT_NODE: &str = r#"/**
+ * Aureus VRC Auto-Rewrite Hook for Claude Code
+ * Transparently rewrites git commit → aureus-vrc commit
+ */
 
-if ! command -v aureus-vrc &>/dev/null || ! command -v jq &>/dev/null; then
-  exit 0
-fi
+const { execSync } = require('child_process');
 
-INPUT=$(cat)
-CMD=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
-
-# Skip if not git commit
-if ! echo "$CMD" | grep -qE '^git[[:space:]]+commit'; then
-  exit 0
-fi
-
-# Extract message if present
-MESSAGE=""
-if echo "$CMD" | grep -q '\-m'; then
-  MESSAGE=$(echo "$CMD" | sed -n 's/.*-m[[:space:]]*"\([^"]*\)".*/\1/p')
-fi
-
-# Rewrite to aureus-vrc commit
-if [ -n "$MESSAGE" ]; then
-  REWRITTEN="aureus-vrc commit -m \"$MESSAGE\""
-else
-  REWRITTEN="aureus-vrc commit"
-fi
-
-ORIGINAL_INPUT=$(echo "$INPUT" | jq -c '.tool_input')
-UPDATED_INPUT=$(echo "$ORIGINAL_INPUT" | jq --arg cmd "$REWRITTEN" '.command = $cmd')
-
-jq -n \
-  --argjson updated "$UPDATED_INPUT" \
-  '{
-    "hookSpecificOutput": {
-      "hookEventName": "PreToolUse",
-      "permissionDecision": "allow",
-      "permissionDecisionReason": "Aureus auto-rewrite",
-      "updatedInput": $updated
+function preToolUse(context, toolName, toolInput) {
+    // Only process Bash commands
+    if (toolName !== 'Bash') {
+        return;
     }
-  }'
-"#;
 
-const HOOK_SCRIPT_POWERSHELL: &str = r#"# Aureus auto-rewrite hook for Claude Code PreToolUse (Windows)
-# Transparently rewrites git commit to aureus-vrc commit
-# Requires: aureus-vrc CLI
-
-$ErrorActionPreference = "SilentlyContinue"
-
-# Check if aureus-vrc is available
-$hasAureus = Get-Command aureus-vrc -ErrorAction SilentlyContinue
-
-if (-not $hasAureus) {
-    exit 0
-}
-
-# Read input from stdin
-$inputObj = $Input | ConvertFrom-Json
-$CMD = $inputObj.tool_input.command
-
-# Skip if not git commit
-if ($CMD -notmatch "^git\s+commit") {
-    exit 0
-}
-
-# Extract message if present
-$MESSAGE = ""
-if ($CMD -match '\-m\s+"([^"]+)"') {
-    $MESSAGE = $matches[1]
-}
-
-# Rewrite to aureus-vrc commit
-if ($MESSAGE) {
-    $REWRITTEN = "aureus-vrc commit -m `"$MESSAGE`""
-} else {
-    $REWRITTEN = "aureus-vrc commit"
-}
-
-# Build output
-$UPDATED = @{
-    command = $REWRITTEN
-} | ConvertTo-Json -Compress
-
-$result = @{
-    hookSpecificOutput = @{
-        hookEventName = "PreToolUse"
-        permissionDecision = "allow"
-        permissionDecisionReason = "Aureus auto-rewrite"
-        updatedInput = ($UPDATED | ConvertFrom-Json)
+    const command = toolInput?.command;
+    if (!command || typeof command !== 'string') {
+        return;
     }
+
+    // Check if aureus-vrc is available
+    let hasAureus = false;
+    try {
+        execSync('aureus-vrc --version', { stdio: 'ignore' });
+        hasAureus = true;
+    } catch {
+        return; // aureus-vrc not installed
+    }
+
+    if (!hasAureus) {
+        return;
+    }
+
+    // Don't modify if already aureus-vrc
+    if (/^aureus-vrc\s+commit/.test(command)) {
+        return;
+    }
+
+    // Match: git commit [options]
+    const gitCommitRegex = /^git\s+commit(\s+.*)?$/;
+    if (!gitCommitRegex.test(command.trim())) {
+        return;
+    }
+
+    // Extract arguments (message, etc.)
+    const match = command.match(/^git\s+commit(\s+.*)$/);
+    const args = match ? match[1].trim() : '';
+
+    // Rewrite to aureus-vrc
+    const rewritten = `aureus-vrc commit${args ? ' ' + args : ''}`;
+
+    return {
+        permissionDecision: 'allow',
+        permissionDecisionReason: 'Aureus auto-rewrite',
+        updatedInput: {
+            ...toolInput,
+            command: rewritten
+        }
+    };
 }
 
-Write-Output ($result | ConvertTo-Json -Compress)
+module.exports = { preToolUse };
 "#;
 
 pub fn execute(cmd: InitCommand) -> Result<()> {
@@ -249,33 +224,12 @@ fn init_global(force: bool, no_hooks: bool) -> Result<()> {
 
     // Install hook if not disabled
     if !no_hooks {
-        let is_windows = cfg!(windows);
-        let (hook_filename, hook_content) = if is_windows {
-            ("aureus-rewrite.ps1", HOOK_SCRIPT_POWERSHELL)
-        } else {
-            ("aureus-rewrite.sh", HOOK_SCRIPT_BASH)
-        };
+        let hook_filename = "aureus-rewrite.cjs";
 
         let hook_path = claude_dir.join("hooks").join(hook_filename);
         if !hook_path.exists() || force {
-            // Convert LF to CRLF on Windows for PowerShell scripts
-            let content_to_write = if is_windows {
-                hook_content.replace('\n', "\r\n")
-            } else {
-                hook_content.to_string()
-            };
-
-            fs::write(&hook_path, content_to_write)
+            fs::write(&hook_path, HOOK_SCRIPT_NODE)
                 .context("Failed to write hook script")?;
-
-            // Make executable on Unix
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                let mut perms = fs::metadata(&hook_path)?.permissions();
-                perms.set_mode(0o755);
-                fs::set_permissions(&hook_path, perms)?;
-            }
 
             println!("  ✓ {}", format!("Created ~/.claude/hooks/{}", hook_filename).green());
         }
@@ -283,6 +237,9 @@ fn init_global(force: bool, no_hooks: bool) -> Result<()> {
         // Update settings.json
         let _ = update_settings_json(&claude_dir, hook_filename);
     }
+
+    // Update CLAUDE.md to include @AUREUS.md reference
+    let _ = update_claude_md(&claude_dir, force);
 
     println!();
     println!("✓ {}", "Aureus initialized successfully!".green());
@@ -312,6 +269,92 @@ fn init_local(force: bool) -> Result<()> {
     Ok(())
 }
 
+fn update_claude_md(claude_dir: &std::path::Path, force: bool) -> Result<()> {
+    let claude_md_path = claude_dir.join("CLAUDE.md");
+
+    // Only add if CLAUDE.md exists
+    if !claude_md_path.exists() {
+        return Ok(());
+    }
+
+    let content = fs::read_to_string(&claude_md_path)?;
+
+    // Count existing @AUREUS.md references
+    let aureus_count = content.matches("@AUREUS.md").count();
+
+    // Already has exactly one reference and not forcing
+    if aureus_count == 1 && !force {
+        println!("  {}", "@AUREUS.md already referenced in CLAUDE.md".dimmed());
+        return Ok(());
+    }
+
+    // If forcing, remove all duplicates first
+    let cleaned_content = if aureus_count > 0 {
+        content.lines()
+            .filter(|line| *line != "@AUREUS.md")
+            .collect::<Vec<_>>()
+            .join("\n")
+    } else {
+        content.clone()
+    };
+
+    // Add @AUREUS.md reference at the beginning (after any existing @ references)
+    let aureus_reference = "@AUREUS.md";
+
+    let new_content = if cleaned_content.contains("@RTK.md") {
+        // Insert after @RTK.md
+        cleaned_content.replace("@RTK.md", &format!("@RTK.md\n{}", aureus_reference))
+    } else if cleaned_content.lines().any(|l| l.starts_with('@')) {
+        // Find the last @ reference and insert after it
+        let lines: Vec<&str> = cleaned_content.lines().collect();
+        let mut new_lines = Vec::new();
+        let mut inserted = false;
+        let mut last_at_index = 0;
+
+        // Find the last @ reference
+        for (i, line) in lines.iter().enumerate() {
+            if line.starts_with('@') {
+                last_at_index = i;
+            }
+        }
+
+        for (i, line) in lines.iter().enumerate() {
+            new_lines.push(*line);
+            if !inserted && i == last_at_index {
+                // Insert after this line (at the end of the @ section)
+                // Check if next line is also an @ reference
+                if i < lines.len() - 1 && !lines[i + 1].starts_with('@') {
+                    new_lines.push(aureus_reference);
+                    inserted = true;
+                } else if i == lines.len() - 1 {
+                    new_lines.push(aureus_reference);
+                    inserted = true;
+                }
+            }
+        }
+
+        // If no suitable position found, prepend
+        if !inserted {
+            new_lines.insert(0, aureus_reference);
+        }
+
+        new_lines.join("\n")
+    } else {
+        // No @ references, add at the end before the version line
+        if cleaned_content.contains("*Version:") {
+            cleaned_content.replace("*Version:", &format!("{}\n\n*Version:", aureus_reference))
+        } else {
+            format!("{}\n\n{}", cleaned_content.trim(), aureus_reference)
+        }
+    };
+
+    fs::write(&claude_md_path, new_content)
+        .context("Failed to update CLAUDE.md")?;
+    println!("  ✓ {}", "Added @AUREUS.md reference to CLAUDE.md".green());
+
+    Ok(())
+}
+
 fn update_settings_json(claude_dir: &std::path::Path, hook_filename: &str) -> Result<()> {
     let settings_path = claude_dir.join("settings.json");
 
@@ -327,11 +370,16 @@ fn update_settings_json(claude_dir: &std::path::Path, hook_filename: &str) -> Re
         settings["hooks"]["PreToolUse"] = serde_json::json!([]);
     }
 
-    let is_windows = cfg!(windows);
-    let hook_path = format!("~/.claude/hooks/{}", hook_filename);
+    // Build absolute path for the hook
+    let hook_path = claude_dir.join("hooks").join(hook_filename);
+    let hook_path_str = hook_path.to_str()
+        .context("Invalid hook path")?;
 
-    // Determine matcher based on platform
-    let matcher = if is_windows { "Command" } else { "Bash" };
+    // Use "node" prefix for cross-platform compatibility
+    let hook_command = format!("node {}", hook_path_str.replace('\\', "/"));
+
+    // Matcher should ALWAYS be "Bash" - that's the Claude Code tool name
+    let matcher = "Bash";
 
     // Clean up ALL existing aureus-rewrite hooks (removes duplicates)
     let pre_tool_uses = settings["hooks"]["PreToolUse"].as_array_mut()
@@ -362,17 +410,40 @@ fn update_settings_json(claude_dir: &std::path::Path, hook_filename: &str) -> Re
     // Replace with filtered hooks (no duplicates)
     *pre_tool_uses = filtered_hooks;
 
-    // Add the single clean hook
+    // Add the single clean hook - insert BEFORE rtk-rewrite for priority
     let aureus_hook = serde_json::json!({
         "matcher": matcher,
         "hooks": [{
             "type": "command",
-            "command": hook_path
+            "command": hook_command,
+            "timeout": 5000
         }]
     });
 
-    pre_tool_uses.push(aureus_hook);
-    let _ = fs::write(&settings_path, serde_json::to_string_pretty(&settings)?);
+    // Find position to insert (before rtk-rewrite if exists)
+    let insert_pos = pre_tool_uses.iter()
+        .position(|entry| {
+            entry.get("hooks")
+                .and_then(|h| h.as_array())
+                .map(|hooks| {
+                    hooks.iter().any(|h| {
+                        h.get("command")
+                            .and_then(|c| c.as_str())
+                            .map(|c| c.contains("rtk-rewrite"))
+                            .unwrap_or(false)
+                    })
+                })
+                .unwrap_or(false)
+        });
+
+    if let Some(pos) = insert_pos {
+        pre_tool_uses.insert(pos, aureus_hook);
+    } else {
+        pre_tool_uses.push(aureus_hook);
+    }
+
+    fs::write(&settings_path, serde_json::to_string_pretty(&settings)?)
+        .context("Failed to write settings.json")?;
     println!("  ✓ {}", "Updated ~/.claude/settings.json (cleaned duplicates)".green());
 
     Ok(())

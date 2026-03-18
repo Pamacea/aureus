@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.11.4] - 2025-03-18
+
+### Fixed
+- **Critical hook bug:** PreToolUse hook now correctly uses `"Bash"` matcher (was `"Command"` on Windows)
+- **Hook implementation:** Replaced shell scripts (.sh/.ps1) with Node.js module (.cjs) for Claude Code compatibility
+- **CLAUDE.md integration:** `init --global` now adds `@AUREUS.md` reference to global CLAUDE.md for context loading
+- **Duplicate prevention:** Improved CLAUDE.md update logic to prevent duplicate `@AUREUS.md` entries
+
+### Changed
+- **Hook priority:** Aureus hook now installs before RTK in settings.json for proper command interception
+- **Cross-platform:** Single Node.js hook file works on all platforms (no more platform-specific scripts)
+
+---
+
 ## [0.11.3] - 2025-03-15
 
 ### Fixed
