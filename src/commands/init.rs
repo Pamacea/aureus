@@ -129,7 +129,7 @@ Using Aureus saves tokens by:
 "#;
 
 const HOOK_SCRIPT_NODE: &str = r#"/**
- * Aureus VRC Auto-Rewrite Hook for Claude Code
+ * Aureus Auto-Rewrite Hook for Claude Code
  * Transparently rewrites git commit → aureus commit
  */
 
@@ -159,23 +159,24 @@ function preToolUse(context, toolName, toolInput) {
         return;
     }
 
-    // Don't modify if already aureus
+    // Don't modify if already aureus commit
     if (/^aureus\s+commit/.test(command)) {
         return;
     }
 
-    // Match: git commit [options]
-    const gitCommitRegex = /^git\s+commit(\s+.*)?$/;
-    if (!gitCommitRegex.test(command.trim())) {
+    // Extract first command (before &&, ||, |, or newline)
+    // This handles multi-line commands with heredocs
+    const firstCmd = command.split(/&&|\|\||\n|\r/)[0].trim();
+
+    // Match: git commit [options] - use multiline mode for heredocs
+    const gitCommitRegex = /^git\s+commit(\s+.*)?/;
+    if (!gitCommitRegex.test(firstCmd)) {
         return;
     }
 
-    // Extract arguments (message, etc.)
-    const match = command.match(/^git\s+commit(\s+.*)$/);
-    const args = match ? match[1].trim() : '';
-
-    // Rewrite to aureus
-    const rewritten = `aureus commit${args ? ' ' + args : ''}`;
+    // Rewrite: replace only the "git commit" part with "aureus commit"
+    // Keep everything else (including heredocs) intact
+    const rewritten = command.replace(/^git\s+commit/, 'aureus commit');
 
     return {
         permissionDecision: 'allow',

@@ -1,6 +1,6 @@
 [package]
 name = "oalacea-aureus"
-version = "0.12.0"
+version = "0.12.1"
 edition = "2021"
 authors = ["Yanis"]
 description = "Aureus VRC - Versioned Release Convention CLI for Git workflow automation"
