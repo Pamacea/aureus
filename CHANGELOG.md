@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.2] - 2026-04-02
+
+### Added
+- **Node.js hook** — New `aureus-rewrite.cjs` hook replacing the shell script version
+- **Version caching** — Caches `aureus --version` check to avoid repeated spawnSync calls
+- **Word boundary regex** — More robust regex with `\b` to avoid false matches
+
+### Changed
+- **Hook format** — Now uses `module.exports` format (same as RTK) for compatibility with Claude Code "command" hooks
+- **Timeout** — Added 1000ms timeout to spawnSync for reliability
+
+---
+
 ## [0.12.1] - 2026-03-23
 
 ### Fixed
