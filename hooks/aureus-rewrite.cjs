@@ -1,9 +1,9 @@
+#!/usr/bin/env node
 /**
  * Aureus Auto-Rewrite Hook for Claude Code
  * Transparently rewrites git commit → aureus commit
  *
- * This hook intercepts Bash commands before execution and rewrites them
- * to use Aureus for proper Versioned Release Convention formatting.
+ * Protocol: stdin JSON → stdout JSON (hookSpecificOutput)
  */
 
 const { spawnSync } = require('child_process');
@@ -14,71 +14,56 @@ let hasAureus = false;
 
 function checkAureus() {
     if (aureusChecked) return hasAureus;
-
     try {
         const result = spawnSync('aureus', ['--version'], {
-            stdio: 'ignore',
-            timeout: 1000,
-            shell: false
+            stdio: 'ignore', timeout: 1000, shell: false
         });
         hasAureus = result.status === 0;
-    } catch {
-        hasAureus = false;
-    }
+    } catch { hasAureus = false; }
     aureusChecked = true;
     return hasAureus;
 }
 
-function preToolUse(context, toolName, toolInput) {
-    // Only process Bash commands
-    if (toolName !== 'Bash') {
-        return;
-    }
+// ─── Main: read from stdin ───
+let input = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', chunk => { input += chunk; });
+process.stdin.on('end', () => {
+    let data;
+    try { data = JSON.parse(input); } catch { process.exit(0); }
 
-    const command = toolInput?.command;
-    if (!command || typeof command !== 'string') {
-        return;
-    }
+    if (data?.tool_name !== 'Bash') { process.exit(0); }
+
+    const toolInput = data.tool_input || {};
+    const command = toolInput.command;
+    if (!command || typeof command !== 'string') { process.exit(0); }
 
     // Check if aureus is available (cached)
-    if (!checkAureus()) {
-        return;
-    }
+    if (!checkAureus()) { process.exit(0); }
 
     // Don't modify if already aureus commit
-    if (/^aureus\s+commit/.test(command)) {
-        return;
-    }
+    if (/^aureus\s+commit/.test(command)) { process.exit(0); }
 
-    // Skip commands with heredocs (they break simple regex)
-    // Note: git commit -m "msg" is fine, but heredocs like <<EOF need special handling
-    if (command.includes('<<')) {
-        return;
-    }
+    // Skip heredocs
+    if (/<<[-~]?\w/.test(command)) { process.exit(0); }
 
     // Extract first command (before &&, ||, |, or newline)
-    // This handles multi-line commands with heredocs
     const firstCmd = command.split(/&&|\|\||\n|\r/)[0].trim();
 
     // Match: git commit [options]
-    // Use word boundary to avoid matching git-commit or other variants
-    const gitCommitRegex = /^git\s+commit\b/;
-    if (!gitCommitRegex.test(firstCmd)) {
-        return;
-    }
+    if (!/^git\s+commit\b/.test(firstCmd)) { process.exit(0); }
 
-    // Rewrite: replace only the "git commit" part with "aureus commit"
-    // Keep everything else (including message, flags, heredocs) intact
+    // Rewrite: replace only "git commit" with "aureus commit"
     const rewritten = command.replace(/^git\s+commit\b/, 'aureus commit');
 
-    return {
-        permissionDecision: 'allow',
-        permissionDecisionReason: 'Aureus auto-rewrite: git commit → aureus commit',
-        updatedInput: {
-            ...toolInput,
-            command: rewritten
+    const result = {
+        hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'allow',
+            permissionDecisionReason: 'Aureus: git commit → aureus commit',
+            updatedInput: { ...toolInput, command: rewritten }
         }
     };
-}
-
-module.exports = { preToolUse };
+    process.stdout.write(JSON.stringify(result));
+    process.exit(0);
+});

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.12.3] - 2026-04-08
+
+### Fixed
+- **Critical: Hook protocol** — `aureus-rewrite.cjs` now reads JSON from stdin and writes JSON to stdout (correct Claude Code command hook protocol). Previously used `module.exports` pattern which was never called by Claude Code, causing `git commit` to never be rewritten to `aureus commit`.
+- **Critical: init.rs embedded hook** — `HOOK_SCRIPT_NODE` constant updated to use stdin/stdout protocol. This is the script written by `aureus init --global`, so the fix propagates to all installations.
+- **Heredoc detection** — Tightened heredoc check from `command.includes('<<')` to `/<<[-~]?\w/` to avoid false positives.
+- **Documentation** — Updated AUREUS.md to reflect correct stdin/stdout protocol behavior.
+
+---
+
 ## [0.12.2] - 2026-04-02
 
 ### Added

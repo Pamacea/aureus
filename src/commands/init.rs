@@ -104,19 +104,19 @@ fix bugfix patch corrected hotfix typo
 
 ## Hook Behavior
 
-The `PreToolUse` hook (Node.js module) intercepts:
+The `PreToolUse` hook (Node.js command hook) intercepts via stdin/stdout protocol:
 - `git commit -m "message"` → `aureus commit -m "message"`
 - `git commit` (no message) → `aureus commit` (prompts for message)
 - `git commit --amend` → `aureus commit --amend`
 
-To bypass: `git commit --no-verify` or use `aureus commit` directly.
+To bypass: use `aureus commit` directly or `rtk proxy git commit`.
 
 ## Hook File
 
 Hook location: `~/.claude/hooks/aureus-rewrite.cjs`
 
-This Node.js module integrates with Claude Code's hook system to transparently
-rewrite git commands to aureus commands.
+This Node.js command hook integrates with Claude Code's hook system using the
+stdin/stdout JSON protocol to transparently rewrite git commands to aureus commands.
 
 ## Token Savings
 
@@ -128,67 +128,66 @@ Using Aureus saves tokens by:
 - ✅ Lightweight Node.js hook (minimal overhead)
 "#;
 
-const HOOK_SCRIPT_NODE: &str = r#"/**
+const HOOK_SCRIPT_NODE: &str = r#"#!/usr/bin/env node
+/**
  * Aureus Auto-Rewrite Hook for Claude Code
  * Transparently rewrites git commit → aureus commit
+ *
+ * Protocol: stdin JSON → stdout JSON (hookSpecificOutput)
  */
 
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
-function preToolUse(context, toolName, toolInput) {
-    // Only process Bash commands
-    if (toolName !== 'Bash') {
-        return;
-    }
+// Cache aureus availability to avoid repeated checks
+let aureusChecked = false;
+let hasAureus = false;
 
-    const command = toolInput?.command;
-    if (!command || typeof command !== 'string') {
-        return;
-    }
-
-    // Check if aureus is available
-    let hasAureus = false;
+function checkAureus() {
+    if (aureusChecked) return hasAureus;
     try {
-        execSync('aureus --version', { stdio: 'ignore' });
-        hasAureus = true;
-    } catch {
-        return; // aureus not installed
-    }
-
-    if (!hasAureus) {
-        return;
-    }
-
-    // Don't modify if already aureus commit
-    if (/^aureus\s+commit/.test(command)) {
-        return;
-    }
-
-    // Extract first command (before &&, ||, |, or newline)
-    // This handles multi-line commands with heredocs
-    const firstCmd = command.split(/&&|\|\||\n|\r/)[0].trim();
-
-    // Match: git commit [options] - use multiline mode for heredocs
-    const gitCommitRegex = /^git\s+commit(\s+.*)?/;
-    if (!gitCommitRegex.test(firstCmd)) {
-        return;
-    }
-
-    // Rewrite: replace only the "git commit" part with "aureus commit"
-    // Keep everything else (including heredocs) intact
-    const rewritten = command.replace(/^git\s+commit/, 'aureus commit');
-
-    return {
-        permissionDecision: 'allow',
-        permissionDecisionReason: 'Aureus auto-rewrite',
-        updatedInput: {
-            ...toolInput,
-            command: rewritten
-        }
-    };
+        const result = spawnSync('aureus', ['--version'], {
+            stdio: 'ignore', timeout: 1000, shell: false
+        });
+        hasAureus = result.status === 0;
+    } catch { hasAureus = false; }
+    aureusChecked = true;
+    return hasAureus;
 }
 
-module.exports = { preToolUse };
+// Main: read from stdin
+let input = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', chunk => { input += chunk; });
+process.stdin.on('end', () => {
+    let data;
+    try { data = JSON.parse(input); } catch { process.exit(0); }
+
+    if (data?.tool_name !== 'Bash') { process.exit(0); }
+
+    const toolInput = data.tool_input || {};
+    const command = toolInput.command;
+    if (!command || typeof command !== 'string') { process.exit(0); }
+
+    if (!checkAureus()) { process.exit(0); }
+    if (/^aureus\s+commit/.test(command)) { process.exit(0); }
+    if (/<<[-~]?\w/.test(command)) { process.exit(0); }
+
+    const firstCmd = command.split(/&&|\|\||\n|\r/)[0].trim();
+    if (!/^git\s+commit\b/.test(firstCmd)) { process.exit(0); }
+
+    const rewritten = command.replace(/^git\s+commit\b/, 'aureus commit');
+
+    const result = {
+        hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'allow',
+            permissionDecisionReason: 'Aureus: git commit → aureus commit',
+            updatedInput: { ...toolInput, command: rewritten }
+        }
+    };
+    process.stdout.write(JSON.stringify(result));
+    process.exit(0);
+});
 "#;
 
 pub fn execute(cmd: InitCommand) -> Result<()> {
